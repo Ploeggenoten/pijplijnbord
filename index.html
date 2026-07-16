@@ -554,7 +554,7 @@ function setupRealtime() {
 // ORIGINELE APP-LOGICA (ongewijzigd behalve save() → gerichte calls)
 // ═══════════════════════════════════════════════════════════════
 const STALE=10;
-const PHASES=[{k:'Voorselectie',c:'#5b6544'},{k:'Voorgesteld',c:'#5B8DB8'},{k:'O&O sessie',c:'#7E5AA6'},{k:'Eerste gesprek',c:'#4F86C6'},{k:'Tweede gesprek',c:'#3F77B8'},{k:'Meeloopdag',c:'#D9A441'},{k:'Offer',c:'#E8833A'},{k:'Info ontvangen',c:'#E0853F'},{k:'Contract ondertekenen',c:'#3d6400'},{k:'Contract getekend',c:'#2f8f5b'},{k:'Gestart',c:'#2f8f5b'},{k:'Afgevallen',c:'#5b6544'},{k:'Gestopt',c:'#C0392B'}];
+const PHASES=[{k:'Voorselectie',c:'#5b6544'},{k:'Voorgesteld',c:'#5B8DB8'},{k:'O&O sessie',c:'#7E5AA6'},{k:'Eerste gesprek',c:'#4F86C6'},{k:'Tweede gesprek',c:'#3F77B8'},{k:'Meeloopdag',c:'#D9A441'},{k:'Offer',c:'#E8833A'},{k:'Info ontvangen',c:'#E0853F'},{k:'In de wacht',c:'#5c8a8a'},{k:'Contract ondertekenen',c:'#3d6400'},{k:'Contract getekend',c:'#2f8f5b'},{k:'Gestart',c:'#2f8f5b'},{k:'Afgevallen',c:'#5b6544'},{k:'Gestopt',c:'#C0392B'}];
 const PLACED=['Contract getekend','Gestart'];
 const DONE=['Contract getekend','Gestart','Afgevallen','Gestopt'];
 const EXPECTSTART=['Meeloopdag','Offer','Info ontvangen','Contract ondertekenen'];
@@ -577,7 +577,7 @@ function fmtFull(d){if(!d)return'';const dt=new Date(d);const p=d.split('-');ret
 function daysTo(d){if(!d)return 9999;return Math.round((new Date(d)-new Date(new Date().toDateString()))/864e5)}
 function daysAgo(d){if(!d)return 0;return Math.round((new Date(new Date().toDateString())-new Date(d))/864e5)}
 function esc(s){return(s||'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}
-function isStale(c){return!DONE.includes(c.fase)&&daysAgo(c.since)>=STALE}
+function isStale(c){return!DONE.includes(c.fase)&&c.fase!=='In de wacht'&&daysAgo(c.since)>=STALE}
 function repOf(c){return state.cands.find(x=>x.vervangt===c.id)}
 function stopOpen(c){return owesReplacement(c)&&!repOf(c)}
 function weekRange(){const t=new Date(new Date().toDateString());const dow=(t.getDay()+6)%7;const mon=new Date(t);mon.setDate(t.getDate()-dow);const sun=new Date(mon);sun.setDate(mon.getDate()+6);return[isoLocal(mon),isoLocal(sun)]}
@@ -731,7 +731,7 @@ function cardEl(c){
   if(c.bron)h+=`<span class="tag bron">${esc(c.bron)}</span>`;
   if((c.fase==='Afgevallen'||c.fase==='Gestopt')&&c.reden)h+=`<span class="tag reden">${esc(c.reden)}</span>`;
   if(loc)h+=`<span class="tag loc">📍 ${esc(loc)}</span>`;
-  {const _dif=daysAgo(c.since);if(!DONE.includes(c.fase)&&_dif>=4)h+=`<span class="tag ${isStale(c)?'stale':'age'}">⏳ ${_dif} dgn</span>`;}
+  {const _dif=daysAgo(c.since);if(!DONE.includes(c.fase)&&_dif>=4)h+=`<span class="tag ${c.fase==='In de wacht'?'bron':(isStale(c)?'stale':'age')}">⏳ ${_dif} dgn</span>`;}
   if(c.vervangt&&state.cands.some(x=>x.id===c.vervangt))h+=`<span class="tag rep">↻ vervanger</span>`;
   if(PLACED.includes(c.fase)&&c.garantieMnd>0){const ge=garantieEnd(c);if(ge&&ge>=todayISO())h+=`<span class="tag gar">🛡 garantie t/m ${fmtFull(ge)}</span>`}
   h+=`</div>`;
@@ -755,7 +755,7 @@ function move(id,fase){
   if(PLACED.includes(fase)&&!c.geplaatstOp)c.geplaatstOp=todayISO();
   if(fase==='Gestopt')c.gestoptOp=todayISO();
   if(fase!=='O&O sessie')c.ooId=null;
-  _upsertCand(c);render();if(['Contract ondertekenen','Contract getekend','Gestart'].includes(fase)&&(!c.maandloon||!c.start)){openEdit(id);toast('Vul maandloon + startdatum in — nodig voor de fee-berekening')}else if(['Afgevallen','Gestopt'].includes(fase)&&!(c.reden||'').trim()){openEdit(id);toast('Vul de reden in — belangrijk voor uitval-inzicht')}else toast(c.naam+' → '+fase);
+  _upsertCand(c);render();if(['Contract ondertekenen','Contract getekend','Gestart'].includes(fase)&&(!c.maandloon||!c.start)){openEdit(id);toast('Vul maandloon + startdatum in — nodig voor de fee-berekening')}else if(['Afgevallen','Gestopt'].includes(fase)&&!(c.reden||'').trim()){openEdit(id);toast('Vul de reden in — belangrijk voor uitval-inzicht')}else if(fase==='In de wacht'&&!c.start){openEdit(id);toast('Zet de verwachte startdatum erbij — dan rekent de forecast ermee')}else toast(c.naam+' → '+fase);
 }
 
 // ─── MOBILE PHASE PICKER ────────────────────────────────────────

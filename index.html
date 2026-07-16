@@ -21,7 +21,7 @@ select,input,button,textarea{font-family:var(--body);font-size:13px}
 .btn:hover{filter:brightness(1.05)}.btn.ghost{background:transparent;border:1px solid #5b6544;color:#2a3618}.btn.oo{background:var(--purple)}
 .dash{display:flex;gap:12px;padding:13px 18px;flex-wrap:wrap;background:#2a3618;border-bottom:1px solid var(--line);align-items:stretch}
 .panelbox{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
-.tgt{min-width:240px}
+.tgt{flex:1 1 260px}
 .tgt h4,.week h4,.kan h4{margin:0 0 8px;font-family:var(--disp);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--steel);display:flex;align-items:center;gap:8px}
 .tgt .big{font-family:var(--disp);font-weight:800;font-size:26px;line-height:1}
 .tgt .sub{font-size:12px;color:var(--muted);margin-top:2px}
@@ -40,7 +40,7 @@ select,input,button,textarea{font-family:var(--body);font-size:13px}
 .bar{height:9px;border-radius:6px;background:#232d15;margin-top:9px;overflow:hidden}.bar i{display:block;height:100%;background:var(--green)}
 .split{display:flex;gap:14px;margin-top:9px;font-size:12px;flex-wrap:wrap}.split b{font-family:var(--disp)}
 .dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:middle}
-.week{flex:1;min-width:280px}.wgrid{display:flex;gap:8px;flex-wrap:wrap}
+.week{flex:2 1 380px}.wgrid{display:flex;gap:8px;flex-wrap:wrap}
 .wcell{background:#141a0b;border:1px solid var(--line);border-radius:9px;padding:7px 10px;min-width:80px}
 .wcell .n{font-family:var(--disp);font-weight:800;font-size:20px;line-height:1}
 .wcell .l{font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.03em}
@@ -48,25 +48,25 @@ select,input,button,textarea{font-family:var(--body);font-size:13px}
 .chiprow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .chip{background:var(--card);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:12px;display:flex;gap:6px;align-items:center}
 .chip b{font-family:var(--disp);font-weight:700}.chip.alert{border-color:#4a2a26;background:rgba(255,93,93,.13);color:var(--red)}.chip.warn{border-color:#4a3524;background:rgba(255,129,88,.13);color:#fbc258}
-.kan{min-width:160px}.kan .kl{font-size:12px;display:flex;justify-content:space-between;padding:2px 0}.kan .kl b{font-family:var(--disp)}
+.kan{flex:1 1 200px}.kan .kl{font-size:12px;display:flex;justify-content:space-between;padding:2px 0}.kan .kl b{font-family:var(--disp)}
 .board{display:flex;gap:12px;padding:16px 18px 40px;overflow-x:auto;align-items:flex-start;min-height:54vh}
 .colm{flex:0 0 234px;background:var(--col);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;max-height:calc(100vh - 300px)}
 .colm.gestart{background:rgba(37,211,102,.13)}.colm.contractgetekend{background:rgba(37,211,102,.10)}.colm.gestopt{background:rgba(255,93,93,.13)}.colm.afgevallen{background:#171d10}.colm.oosessie{background:#1c2118}
-.chead{padding:10px 12px;border-top:4px solid var(--ph);border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:inherit;z-index:1}
-.chead h3{font-family:var(--disp);font-weight:700;font-size:12px;letter-spacing:.05em;text-transform:uppercase;margin:0}
-.count{font-family:var(--disp);font-weight:700;font-size:12px;color:#fff;background:var(--ph);border-radius:999px;min-width:22px;height:20px;display:inline-flex;align-items:center;justify-content:center;padding:0 6px}
+.chead{padding:11px 13px;border-top:5px solid var(--ph);border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:inherit;z-index:1}
+.chead h3{font-family:var(--disp);font-weight:800;font-size:14px;letter-spacing:.05em;text-transform:uppercase;margin:0;color:var(--ph)}
+.count{font-family:var(--disp);font-weight:800;font-size:13px;color:#111;background:var(--ph);border-radius:999px;min-width:22px;height:20px;display:inline-flex;align-items:center;justify-content:center;padding:0 6px}
 .cbody{padding:8px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;min-height:46px}
 .colm.drop .cbody{outline:2px dashed var(--glove);outline-offset:-6px;border-radius:8px}
 .sess{margin:2px 0 -2px;padding:5px 8px;border-radius:7px;font-size:11px;font-weight:700;display:flex;justify-content:space-between;align-items:center;color:#fff;cursor:pointer}
 .sess.red{background:rgba(255,93,93,.18);color:#f4a6a6;border:1px solid #4a2a26}.sess.amber{background:rgba(255,129,88,.16);color:#fbc258;border:1px solid #4a3524}.sess.green{background:rgba(37,211,102,.16);color:#5fe08f;border:1px solid #2a4a35}
 .sess small{font-weight:500;opacity:.92;display:block;font-size:10px}
-.card{background:#2a3520;border:1px solid #3e4c2a;border-left:5px solid var(--type);border-radius:9px;padding:9px 10px;cursor:grab;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.card{background:#333f24;border:1px solid #4d5e32;border-left:6px solid var(--type);border-radius:10px;padding:10px 11px;cursor:grab;box-shadow:0 3px 8px rgba(0,0,0,.4)}
 .card.stale{box-shadow:0 0 0 2px #4a3524}.card:active{cursor:grabbing}
-.card .nm{font-weight:600;font-size:14px;line-height:1.15}
-.card .sub{font-size:12px;margin-top:2px}.card .sub b{color:var(--steel)}
+.card .nm{font-weight:700;font-size:15px;line-height:1.15;color:#f6f7f1}
+.card .sub{font-size:12.5px;margin-top:3px;color:#c8d3b4}.card .sub b{color:var(--steel)}
 .card .meta{display:flex;gap:5px;align-items:center;margin-top:6px;flex-wrap:wrap}
-.card .when{margin-top:7px;font-family:var(--disp);font-weight:700;font-size:12.5px;color:#d7e88a;background:rgba(164,198,97,.13);border:1px solid #3a4a28;border-radius:7px;padding:3px 8px;display:inline-flex;gap:6px;align-items:center}
-.card .when.soon{background:rgba(255,129,88,.13);border-color:#4a3524;color:#fbc258}.card .when.start{background:rgba(37,211,102,.13);border-color:#2a4a35;color:#5fe08f}
+.card .when{margin-top:8px;font-family:var(--disp);font-weight:700;font-size:14px;letter-spacing:.02em;color:#eaffc4;background:#465a2a;border:1px solid #6f8a3f;border-radius:8px;padding:4px 10px;display:inline-flex;gap:6px;align-items:center}
+.card .when.soon{background:#5a3a1e;border-color:#a86a30;color:#ffd18a}.card .when.start{background:#1e5a38;border-color:#2fce7a;color:#9dffc6}
 .tag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:999px;border:1px solid var(--line)}
 .tag.type{color:#fff;border:none;background:var(--type)}.tag.bron{background:#232d15;color:#9aa781;border-color:#2a3618}
 .tag.loc{background:rgba(200,241,53,.08);border-color:#3a4a28;color:#c8b98a}.tag.stale{background:rgba(255,129,88,.13);border-color:#4a3524;color:#fbc258;font-weight:700}.tag.rep{background:rgba(164,198,97,.13);border-color:#3a4a28;color:var(--steel)}
@@ -146,6 +146,7 @@ textarea{resize:vertical;min-height:70px}
 .tag.age{background:rgba(255,129,88,.13);border-color:#4a3524;color:#fbc258}
 .vage{font-size:10.5px;color:var(--muted);margin-left:6px;white-space:nowrap}
 select,.vtype{background:#1b2211;color:var(--txt);border:1px solid var(--line);border-radius:6px}
+#dash{display:flex;flex-wrap:wrap;gap:12px;flex:1 1 100%;width:100%}
 </style>
 
 <!-- LOGIN -->
@@ -554,11 +555,11 @@ function setupRealtime() {
 // ORIGINELE APP-LOGICA (ongewijzigd behalve save() → gerichte calls)
 // ═══════════════════════════════════════════════════════════════
 const STALE=10;
-const PHASES=[{k:'Voorselectie',c:'#5b6544'},{k:'Voorgesteld',c:'#5B8DB8'},{k:'O&O sessie',c:'#7E5AA6'},{k:'Eerste gesprek',c:'#4F86C6'},{k:'Tweede gesprek',c:'#3F77B8'},{k:'Meeloopdag',c:'#D9A441'},{k:'Offer',c:'#E8833A'},{k:'Info ontvangen',c:'#E0853F'},{k:'In de wacht',c:'#5c8a8a'},{k:'Contract ondertekenen',c:'#3d6400'},{k:'Contract getekend',c:'#2f8f5b'},{k:'Gestart',c:'#2f8f5b'},{k:'Afgevallen',c:'#5b6544'},{k:'Gestopt',c:'#C0392B'}];
+const PHASES=[{k:'Voorselectie',c:'#9aa3b2'},{k:'Voorgesteld',c:'#6aa9e0'},{k:'O&O sessie',c:'#b088e0'},{k:'Eerste gesprek',c:'#4a90d9'},{k:'Tweede gesprek',c:'#2f6fc0'},{k:'Meeloopdag',c:'#f0b429'},{k:'Offer',c:'#ff8c42'},{k:'In de wacht',c:'#4bc0c0'},{k:'Contract ondertekenen',c:'#7ac142'},{k:'Contract getekend',c:'#2fce7a'},{k:'Gestart',c:'#2fce7a'},{k:'Afgevallen',c:'#8a8f7a'},{k:'Gestopt',c:'#ff5252'}];
 const PLACED=['Contract getekend','Gestart'];
 const DONE=['Contract getekend','Gestart','Afgevallen','Gestopt'];
-const EXPECTSTART=['Meeloopdag','Offer','Info ontvangen','Contract ondertekenen'];
-const WEEKFASES=['O&O sessie','Eerste gesprek','Tweede gesprek','Meeloopdag','Offer','Info ontvangen'];
+const EXPECTSTART=['Meeloopdag','Offer','Contract ondertekenen'];
+const WEEKFASES=['O&O sessie','Eerste gesprek','Tweede gesprek','Meeloopdag','Offer'];
 const BRONNEN=['','Indeed','LinkedIn','Meta','Referral','Eigen werving','Anders'];
 const TYPEC={'W&S':'#2E7D8A','Flex':'#E8833A','':'#B7AE9E'};
 const WD=['zo','ma','di','wo','do','vr','za'];

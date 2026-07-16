@@ -1,0 +1,956 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ploeggenoten · Pijplijnbord</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.0/dist/umd/supabase.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#16242b;--steel:#1F4E5F;--steel2:#2E7D8A;--glove:#E8833A;--paper:#ECE8E0;--col:#F6F4EE;--card:#FFFFFF;--line:#D7D1C5;--muted:#6B7280;--green:#2F8F5B;--red:#C0392B;--amber:#D9882E;--purple:#7E5AA6;--disp:'Archivo',system-ui,sans-serif;--body:'Inter',system-ui,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);-webkit-font-smoothing:antialiased}
+header.top{background:var(--ink);color:#fff;padding:11px 18px;display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column;line-height:1}
+.brand b{font-family:var(--disp);font-weight:800;font-size:18px;letter-spacing:.06em;text-transform:uppercase}
+.brand span{font-size:11px;color:#9fb3b9;margin-top:3px}
+.spacer{flex:1}.tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+select,input,button,textarea{font-family:var(--body);font-size:13px}
+.field{background:#22343c;color:#fff;border:1px solid #33474f;border-radius:8px;padding:8px 10px}
+.field::placeholder{color:#8aa0a7}.field option{color:#16242b}
+.btn{background:var(--glove);color:#fff;border:none;border-radius:8px;padding:9px 13px;font-weight:600;cursor:pointer}
+.btn:hover{filter:brightness(1.05)}.btn.ghost{background:transparent;border:1px solid #44565d;color:#d7dee0}.btn.oo{background:var(--purple)}
+.dash{display:flex;gap:12px;padding:13px 18px;flex-wrap:wrap;background:#e4dfd5;border-bottom:1px solid var(--line);align-items:stretch}
+.panelbox{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.tgt{min-width:240px}
+.tgt h4,.week h4,.kan h4{margin:0 0 8px;font-family:var(--disp);font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--steel);display:flex;align-items:center;gap:8px}
+.tgt .big{font-family:var(--disp);font-weight:800;font-size:26px;line-height:1}
+.tgt .sub{font-size:12px;color:var(--muted);margin-top:2px}
+.tgt input{width:46px;border:1px solid var(--line);border-radius:6px;padding:2px 5px;font-family:var(--disp);font-weight:700;text-align:center}
+.tgt h4{justify-content:space-between}
+.mbtn{background:#eceae3;border:1px solid var(--line);border-radius:6px;cursor:pointer;font-size:12px;padding:1px 8px;color:var(--ink);font-weight:700}
+.mbtn:hover{background:#e0ddd4}
+.wdiv{margin:7px 2px 2px;padding:3px 4px;font-family:var(--disp);font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);border-top:2px solid var(--line)}
+.wdiv.now{color:#1E7B4F;border-top-color:#1E7B4F}
+.startnote{background:#e7f3ec;border:1px solid #bfe0c9;border-radius:7px;padding:5px 8px;font-family:var(--disp);font-weight:700;font-size:11.5px;color:#1E7B4F}
+.cgrp{margin:7px 2px 1px;padding:4px 9px;border-radius:7px;font-family:var(--disp);font-weight:700;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:#fff;background:#5a6b73;display:flex;justify-content:space-between;align-items:center}
+.when.bigstart{background:#2F8F5B;color:#fff;border-color:#2F8F5B;font-size:13.5px;padding:4px 10px}
+.when.verw{background:#fdf7ee;border-color:#e6d3b3;color:#8a6d3b;font-weight:600;font-size:11.5px}
+.when.stop{background:#fbeeec;border-color:#e7b3ad;color:var(--red)}
+.btn.ghost.on{background:var(--glove);color:#fff;border-color:var(--glove)}
+.bar{height:9px;border-radius:6px;background:#eceae3;margin-top:9px;overflow:hidden}.bar i{display:block;height:100%;background:var(--green)}
+.split{display:flex;gap:14px;margin-top:9px;font-size:12px;flex-wrap:wrap}.split b{font-family:var(--disp)}
+.dot{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:middle}
+.week{flex:1;min-width:280px}.wgrid{display:flex;gap:8px;flex-wrap:wrap}
+.wcell{background:#f6f4ee;border:1px solid var(--line);border-radius:9px;padding:7px 10px;min-width:80px}
+.wcell .n{font-family:var(--disp);font-weight:800;font-size:20px;line-height:1}
+.wcell .l{font-size:10px;color:var(--muted);margin-top:3px;text-transform:uppercase;letter-spacing:.03em}
+.wcell.hot{background:#fdf3e3;border-color:#eccfa6}.wcell.start{background:#e7f3ec;border-color:#bfe0c9}
+.chiprow{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.chip{background:#fff;border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:12px;display:flex;gap:6px;align-items:center}
+.chip b{font-family:var(--disp);font-weight:700}.chip.alert{border-color:#e7b3ad;background:#fbeeec;color:var(--red)}.chip.warn{border-color:#eccfa6;background:#fdf3e3;color:#9c6500}
+.kan{min-width:160px}.kan .kl{font-size:12px;display:flex;justify-content:space-between;padding:2px 0}.kan .kl b{font-family:var(--disp)}
+.board{display:flex;gap:12px;padding:16px 18px 40px;overflow-x:auto;align-items:flex-start;min-height:54vh}
+.colm{flex:0 0 234px;background:var(--col);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;max-height:calc(100vh - 300px)}
+.colm.gestart{background:#e7f3ec}.colm.contractgetekend{background:#eef6ef}.colm.gestopt{background:#fbeeec}.colm.afgevallen{background:#f0eeec}.colm.oosessie{background:#f4eefa}
+.chead{padding:10px 12px;border-top:4px solid var(--ph);border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:inherit;z-index:1}
+.chead h3{font-family:var(--disp);font-weight:700;font-size:12px;letter-spacing:.05em;text-transform:uppercase;margin:0}
+.count{font-family:var(--disp);font-weight:700;font-size:12px;color:#fff;background:var(--ph);border-radius:999px;min-width:22px;height:20px;display:inline-flex;align-items:center;justify-content:center;padding:0 6px}
+.cbody{padding:8px;overflow-y:auto;display:flex;flex-direction:column;gap:8px;min-height:46px}
+.colm.drop .cbody{outline:2px dashed var(--glove);outline-offset:-6px;border-radius:8px}
+.sess{margin:2px 0 -2px;padding:5px 8px;border-radius:7px;font-size:11px;font-weight:700;display:flex;justify-content:space-between;align-items:center;color:#fff;cursor:pointer}
+.sess.red{background:var(--red)}.sess.amber{background:var(--amber)}.sess.green{background:var(--green)}
+.sess small{font-weight:500;opacity:.92;display:block;font-size:10px}
+.card{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--type);border-radius:9px;padding:9px 10px;cursor:grab;box-shadow:0 1px 2px rgba(0,0,0,.04)}
+.card.stale{box-shadow:0 0 0 2px #eccfa6}.card:active{cursor:grabbing}
+.card .nm{font-weight:600;font-size:14px;line-height:1.15}
+.card .sub{font-size:12px;margin-top:2px}.card .sub b{color:var(--steel)}
+.card .meta{display:flex;gap:5px;align-items:center;margin-top:6px;flex-wrap:wrap}
+.card .when{margin-top:7px;font-family:var(--disp);font-weight:700;font-size:12.5px;color:#27414a;background:#eef3f6;border:1px solid #cbd8de;border-radius:7px;padding:3px 8px;display:inline-flex;gap:6px;align-items:center}
+.card .when.soon{background:#fdf3e3;border-color:#eccfa6;color:#9c6500}.card .when.start{background:#e7f3ec;border-color:#bfe0c9;color:#1E7B4F}
+.tag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:999px;border:1px solid var(--line)}
+.tag.type{color:#fff;border:none;background:var(--type)}.tag.bron{background:#eef0ee;color:#475;border-color:#d3d8d0}
+.tag.loc{background:#f7f1ea;border-color:#e0d3c2;color:#7a5a38}.tag.stale{background:#fdf3e3;border-color:#eccfa6;color:#9c6500;font-weight:700}.tag.rep{background:#eef3f6;border-color:#cbd8de;color:var(--steel)}
+.ribbon{margin-top:7px;font-size:10.5px;font-weight:700;color:var(--red);background:#fbeeec;border:1px solid #e7b3ad;border-radius:6px;padding:3px 7px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ribbon.ok{color:var(--green);background:#eaf6ee;border-color:#bfe0c9}.ribbon.mid{color:#9c6500;background:#fdf3e3;border-color:#eccfa6}.ribbon.none{color:var(--muted);background:#f0eeea;border-color:var(--line)}
+.tag.gar{background:#eef3f6;border-color:#cbd8de;color:var(--steel)}
+.tag.reden{background:#f0eeea;border-color:var(--line);color:var(--muted)}
+.tag.typewarn{background:#fdf3e3;border-color:#eccfa6;color:#9c6500}
+.rbtn{border:1px solid #bfe0c9;background:#fff;color:var(--green);border-radius:5px;font-size:10px;font-weight:700;padding:1px 6px;cursor:pointer}
+.vbtn{border:1px solid #e7b3ad;background:#fff;color:var(--red);border-radius:5px;font-size:10px;font-weight:700;padding:1px 6px;cursor:pointer}
+.drag{opacity:.4}
+.kader{flex:0 0 290px;background:#eef6ef;border:2px solid #bfe0c9;border-radius:12px;display:flex;flex-direction:column;max-height:calc(100vh - 300px)}
+.kader .khead{padding:11px 13px;border-radius:11px 11px 0 0;background:#dff0e4;border-bottom:1px solid #bfe0c9}
+.kader .khead .t{font-family:var(--disp);font-weight:800;font-size:14px;letter-spacing:.05em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+.kader .khead .tt{font-size:12px;color:#216b45;margin-top:5px;font-weight:600}
+.kbody{padding:9px;overflow-y:auto;display:flex;flex-direction:column;gap:6px}
+.kgrp2{font-family:var(--disp);font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:#216b45;margin:6px 2px 1px;font-weight:700}
+.krow{background:#fff;border:1px solid #cbe3d2;border-left:5px solid var(--type);border-radius:8px;padding:7px 9px;cursor:pointer}
+.krow .kn{font-weight:600;font-size:13px}.krow .ks{font-size:11px;color:var(--muted);margin-top:1px}
+.krow .kw{font-family:var(--disp);font-weight:700;font-size:12px;margin-top:4px;color:#1E7B4F;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.krow.tm{box-shadow:0 0 0 2px #9fd3b1}
+.kbadge{font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:999px;background:#1E7B4F;color:#fff}
+.kbadge.tm{background:var(--glove)}.kbadge.ntp{background:#9AA3AB}
+.colm.kader.drop .kbody{outline:2px dashed var(--green);outline-offset:-6px;border-radius:8px}
+.scrim{position:fixed;inset:0;background:rgba(20,30,35,.4);display:none;z-index:5}.scrim.open{display:block}
+.panel{position:fixed;top:0;right:0;height:100%;width:390px;max-width:93vw;background:#fff;box-shadow:-8px 0 30px rgba(0,0,0,.18);transform:translateX(100%);transition:transform .22s;display:flex;flex-direction:column}
+.scrim.open .panel{transform:translateX(0)}
+.panel h2{font-family:var(--disp);font-weight:700;font-size:16px;margin:0;padding:16px 18px;border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:.04em}
+.pbody{padding:16px 18px;overflow-y:auto;display:flex;flex-direction:column;gap:12px}
+label.fl{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--muted);font-weight:600}
+label.fl select,label.fl input,label.fl textarea{font-size:14px;color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:#fff;font-family:var(--body)}
+textarea{resize:vertical;min-height:70px}
+.pfoot{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end}
+.vrow{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);font-size:13px}
+.vrow .vf{flex:1}.vrow .vtype{border:1px solid var(--line);border-radius:5px;padding:2px 4px}
+.kgrp{font-family:var(--disp);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:8px 4px 4px;color:var(--steel)}
+.x{background:none;border:none;cursor:pointer;color:var(--muted);font-size:14px;padding:2px 5px}
+.chk{display:flex;align-items:flex-start;gap:8px;padding:5px 0;border-bottom:1px solid var(--line);cursor:pointer;font-size:13px}
+.chk input{margin-top:3px;flex-shrink:0}.ci{display:flex;flex-direction:column;gap:2px}.ci b{font-size:13px}.ci span{font-size:11px;color:var(--muted)}
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:#16242b;color:#fff;padding:9px 18px;border-radius:99px;font-size:13px;font-weight:600;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:99}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── LOGIN SCREEN ── */
+#loginscreen{position:fixed;inset:0;background:var(--ink);display:flex;align-items:center;justify-content:center;z-index:100}
+.logbox{background:#1c2f37;border:1px solid #2e4450;border-radius:16px;padding:36px 32px;width:340px;max-width:92vw;display:flex;flex-direction:column;gap:18px}
+.logbox .brand b{font-size:20px}.logbox .brand span{font-size:12px}
+.logbox form{display:flex;flex-direction:column;gap:10px}
+.logbox .field{padding:11px 13px;font-size:14px}
+.logbox .btn{padding:12px;font-size:15px;letter-spacing:.02em}
+#login_err{color:#e07070;font-size:13px;min-height:18px;text-align:center}
+#login_reset_link{color:#9fb3b9;font-size:12px;text-align:center;cursor:pointer;text-decoration:underline}
+
+/* ── MOBILE MOVE BUTTON ── */
+.movebtn{display:none;margin-top:7px;width:100%;background:#f0eeea;border:1px solid var(--line);border-radius:6px;padding:5px 8px;font-size:11px;font-weight:700;color:var(--muted);cursor:pointer;text-align:left}
+@media(hover:none),(max-width:600px){.movebtn{display:block}}
+
+/* ── PHASE PICKER (mobile) ── */
+#phasescrim{z-index:10}
+#phasepanel{top:auto;bottom:0;height:auto;max-height:72vh;width:100%;max-width:100%;transform:translateY(100%)}
+#phasescrim.open #phasepanel{transform:translateY(0)}
+#phaselist{padding:10px 12px;display:flex;flex-direction:column;gap:4px;overflow-y:auto}
+.phopt{background:#f6f4ee;border:1px solid var(--line);border-radius:8px;padding:9px 13px;font-size:14px;font-weight:600;cursor:pointer;text-align:left;display:flex;align-items:center;gap:8px}
+.phopt:active{filter:brightness(.95)}
+.phopt .phc{width:10px;height:10px;border-radius:3px;flex-shrink:0}
+.phopt.cur{background:#e7f3ec;border-color:#bfe0c9}
+
+/* ── UPDATED BY ── */
+.updinfo{font-size:10px;color:var(--muted);margin-top:4px;font-style:italic}
+
+/* ── ADMIN PANEL ── */
+#adminscrim{z-index:8}
+.urow{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}
+.urow .uemail{flex:1;color:var(--ink)}.urow .uname{font-weight:600}
+.urole{border:1px solid var(--line);border-radius:5px;padding:2px 6px;font-size:12px}
+.invite-box{background:#f6f4ee;border:1px solid var(--line);border-radius:10px;padding:14px;font-size:13px;line-height:1.6}
+.invite-box a{color:var(--steel2)}
+</style>
+
+<!-- LOGIN -->
+<div id="loginscreen">
+  <div class="logbox">
+    <div class="brand"><b>Ploeggenoten</b><span>Pijplijnbord · Teaminlog</span></div>
+    <form id="loginform">
+      <input type="email" id="login_email" class="field" placeholder="E-mailadres" autocomplete="email" required>
+      <input type="password" id="login_pw" class="field" placeholder="Wachtwoord" autocomplete="current-password" required>
+      <button type="submit" class="btn">Inloggen</button>
+      <div id="login_err"></div>
+      <span id="login_reset_link">Wachtwoord vergeten?</span>
+    </form>
+  </div>
+</div>
+
+<!-- PHASE PICKER (mobile) -->
+<div id="phasescrim" class="scrim">
+  <div class="panel" id="phasepanel">
+    <h2 id="phasetitle" style="font-size:14px">Verplaatsen naar…</h2>
+    <div id="phaselist"></div>
+  </div>
+</div>
+
+<!-- ADMIN -->
+<div id="adminscrim" class="scrim">
+  <div class="panel">
+    <h2>👤 Gebruikersbeheer <button class="x" id="admin_close" style="float:right;font-size:20px">✕</button></h2>
+    <div class="pbody">
+      <div id="userlist"></div>
+      <div class="invite-box">
+        <b>Nieuwe gebruiker uitnodigen</b><br>
+        Ga naar je <a href="https://supabase.com/dashboard" target="_blank">Supabase Dashboard</a> → Authentication → Users → <b>Invite user</b>.<br>
+        Vul het e-mailadres in — de gebruiker ontvangt een e-mail met inloglink. Daarna kun je hier de rol instellen.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP (verborgen tot ingelogd) -->
+<div id="app" style="display:none">
+<header class="top">
+  <div class="brand"><b>Ploeggenoten</b><span>Pijplijnbord</span></div>
+  <div class="spacer"></div>
+  <div class="tools">
+    <input class="field" id="search" placeholder="Zoek naam…" style="width:130px">
+    <select class="field" id="filter"><option value="*">Alle klanten</option></select>
+    <select class="field" id="ffilter"><option value="*">Alle functies</option></select>
+    <button class="btn ghost on" id="grouptoggle">Groepeer op klant</button>
+    <button class="btn oo" id="planoo">+ O&amp;O sessie</button>
+    <button class="btn" id="add">+ Kandidaat</button>
+    <button class="btn ghost" id="manage">⚙ Klanten</button>
+    <button class="btn ghost" id="exportbtn">↓ Export</button>
+    <button class="btn ghost" id="importbtn" style="display:none">↑ Import</button>
+    <button class="btn ghost" id="adminbtn" style="display:none">👤 Gebruikers</button>
+    <span id="userinfo" style="font-size:11px;color:#9fb3b9;white-space:nowrap"></span>
+    <button class="btn ghost" id="logoutbtn" onclick="localStorage.clear();window.location.reload();">Uitloggen</button>
+  </div>
+</header>
+<div class="dash" id="dashouter"><div id="dash"></div></div>
+<div class="board" id="board"></div>
+</div><!-- end #app -->
+
+<!-- KANDIDAAT PANEL -->
+<div class="scrim" id="scrim"><div class="panel">
+  <h2 id="ptitle">Kandidaat</h2>
+  <div class="pbody">
+    <label class="fl">Naam<input id="f_naam" placeholder="Volledige naam"></label>
+    <label class="fl">Vacature<select id="f_vac"></select></label>
+    <label class="fl">Fase<select id="f_fase"></select></label>
+    <label class="fl">Kanaal/bron<select id="f_bron"></select></label>
+    <div style="display:flex;gap:10px">
+      <label class="fl" style="flex:1">Datum/afspraak<input type="date" id="f_datum"></label>
+      <label class="fl" style="flex:1">Tijd<input type="time" id="f_tijd"></label>
+    </div>
+    <label class="fl">Startdatum<input type="date" id="f_start"></label>
+    <label class="fl">Plaatsingsdatum (= factuurdatum)<input type="date" id="f_plaats"></label>
+    <label class="fl">Stopdatum<input type="date" id="f_stop"></label>
+    <label class="fl">Garantie (maanden)<select id="f_garantie"><option value="0">Geen</option><option value="1">1 maand</option><option value="2">2 maanden</option><option value="3">3 maanden</option></select></label>
+    <label class="fl">Recruiter<input id="f_rec" placeholder="Naam recruiter"></label>
+    <label class="fl">Vervangt (koppel aan gestopte)<select id="f_verv"></select></label>
+    <label class="fl">Reden afwijzing/stop<input id="f_reden" placeholder="Optioneel"></label>
+    <label class="fl">Notities<textarea id="f_note" placeholder="Vrij notitieveld"></textarea></label>
+    <div id="f_updinfo" class="updinfo"></div>
+  </div>
+  <div class="pfoot">
+    <button class="btn ghost" id="f_del" style="display:none;color:var(--red);border-color:#e7b3ad">Verwijderen</button>
+    <button class="btn ghost" id="f_cancel">Annuleren</button>
+    <button class="btn" id="f_save">Opslaan</button>
+  </div>
+</div></div>
+
+<!-- KLANTEN PANEL -->
+<div class="scrim" id="mscrim"><div class="panel">
+  <h2>Klanten &amp; Vacatures</h2>
+  <div class="pbody">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <b style="font-size:12px;color:var(--muted)">NIEUWE KLANT</b>
+      <input class="field" id="m_kname" placeholder="Klantnaam" style="color:#fff">
+      <input class="field" id="m_kloc" placeholder="Locatie (optioneel)" style="color:#fff">
+      <input class="field" id="m_kcontact" placeholder="Contactpersoon (optioneel)" style="color:#fff">
+      <button class="btn" id="m_addklant">Klant toevoegen</button>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--line)">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <b style="font-size:12px;color:var(--muted)">NIEUWE VACATURE</b>
+      <select class="field" id="m_klant" style="color:#fff"></select>
+      <input class="field" id="m_func" placeholder="Functietitel" style="color:#fff">
+      <select class="field" id="m_type" style="color:#fff"><option value="">— type —</option><option value="W&S">W&amp;S</option><option value="Detachering">Detachering</option></select>
+      <button class="btn" id="m_add">Vacature toevoegen</button>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--line)">
+    <div id="vlist"></div>
+  </div>
+  <div class="pfoot"><button class="btn ghost" id="m_close">Sluiten</button></div>
+</div></div>
+
+<!-- O&O PANEL -->
+<div class="scrim" id="oscrim"><div class="panel">
+  <h2>O&amp;O Sessie</h2>
+  <div class="pbody">
+    <label class="fl">Sessie<select id="o_sel"></select></label>
+    <label class="fl">Klant<select id="o_klant"></select></label>
+    <label class="fl">Functie<select id="o_func"></select></label>
+    <label class="fl">Datum<input type="date" id="o_datum"></label>
+    <label class="fl">Locatie<input id="o_loc" placeholder="Optioneel"></label>
+    <hr style="border:none;border-top:1px solid var(--line)">
+    <b style="font-size:12px;color:var(--muted)">KANDIDATEN KOPPELEN</b>
+    <div id="o_list"></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input class="field" id="o_newnaam" placeholder="Snelle toevoeging: naam" style="flex:1;min-width:120px;color:#fff">
+      <select class="field" id="o_newbron" style="color:#fff"></select>
+      <button class="btn ghost" id="o_addcand">+ Toevoegen</button>
+    </div>
+  </div>
+  <div class="pfoot">
+    <button class="btn ghost" id="o_del" style="display:none;color:var(--red);border-color:#e7b3ad">Sessie verwijderen</button>
+    <button class="btn ghost" id="o_close">Annuleren</button>
+    <button class="btn" id="o_save">Opslaan</button>
+  </div>
+</div></div>
+
+<!-- HERACTIVEER PANEL -->
+<div class="scrim" id="rscrim"><div class="panel">
+  <h2>Heractiveren</h2>
+  <div class="pbody">
+    <p id="r_who" style="font-size:13px;color:var(--muted)"></p>
+    <label class="fl">Klant<select id="r_klant"></select></label>
+    <label class="fl">Functie<select id="r_func"></select></label>
+  </div>
+  <div class="pfoot">
+    <button class="btn ghost" id="r_cancel">Annuleren</button>
+    <button class="btn" id="r_go">Heractiveren → Voorselectie</button>
+  </div>
+</div></div>
+
+<div id="toast"></div>
+<input type="file" id="importfile" accept=".json" style="display:none">
+
+<script>
+// ═══════════════════════════════════════════════════════════════
+// STAP 1: VUL JOUW SUPABASE-GEGEVENS IN
+// Vind ze in: supabase.com → jouw project → Settings → API
+// ═══════════════════════════════════════════════════════════════
+const SUPABASE_URL  = 'https://gyhrwjdlwamyjhxtdypw.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd5aHJ3amRsd2FteWpoeHRkeXB3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE3ODgwMzUsImV4cCI6MjA5NzM2NDAzNX0.M2huzUfbYtcOqimYIkcuGW-6BCion4HqJVn7TxtkZ9c';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON, {
+  auth: { persistSession: false }
+});
+let currentUser = null, currentProfile = null, rtChannel = null;
+
+// ─── AUTH ───────────────────────────────────────────────────────
+document.getElementById('loginform').onsubmit = async e => {
+  e.preventDefault();
+  const email = document.getElementById('login_email').value;
+  const pw    = document.getElementById('login_pw').value;
+  document.getElementById('login_err').textContent = '';
+  const { error } = await sb.auth.signInWithPassword({ email, password: pw });
+  if (error) document.getElementById('login_err').textContent = 'Inloggen mislukt: ' + error.message;
+};
+
+document.getElementById('login_reset_link').onclick = async () => {
+  const email = document.getElementById('login_email').value;
+  if (!email) { alert('Vul eerst je e-mailadres in'); return; }
+  const { error } = await sb.auth.resetPasswordForEmail(email);
+  document.getElementById('login_err').textContent = error ? error.message : '✓ E-mail verstuurd';
+};
+
+document.getElementById('logoutbtn').onclick = async () => {
+  try { await sb.auth.signOut(); } catch(e) {}
+  localStorage.clear();
+  window.location.reload();
+};
+
+async function initApp(user) {
+  currentUser = user;
+  document.getElementById('loginscreen').style.display = 'none';
+  document.getElementById('app').style.display = '';
+  const { data: prof } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
+  currentProfile = prof;
+  document.getElementById('userinfo').textContent = prof?.naam || currentUser.email;
+  if (prof?.rol === 'admin') {
+    document.getElementById('adminbtn').style.display = '';
+    document.getElementById('importbtn').style.display = '';
+  }
+  await loadFromDB();
+  refreshFilters(); syncGroupBtn(); render();
+  setupRealtime();
+  // Herlaad automatisch als bord leeg blijft na 3 seconden
+  setTimeout(async () => {
+    if (state.cands.length === 0) {
+      await loadFromDB();
+      refreshFilters(); syncGroupBtn(); render();
+    }
+  }, 3000);
+}
+
+let _appShowing = false;
+
+function showLogin() {
+  _appShowing = false;
+  currentUser = null; currentProfile = null;
+  document.getElementById('loginscreen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  if (rtChannel) { rtChannel.unsubscribe(); rtChannel = null; }
+}
+
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+    if (_appShowing) return;
+    _appShowing = true;
+    await initApp(session.user);
+  } else if (event === 'INITIAL_SESSION') {
+    if (!session?.user) { showLogin(); return; }
+    // Vernieuw token — gegarandeerd verse token voor API-calls
+    const { data, error } = await sb.auth.refreshSession();
+    if (error || !data?.session) { showLogin(); return; }
+    // TOKEN_REFRESHED event laadt de app
+  } else if (event === 'SIGNED_OUT' || !session?.user) {
+    showLogin();
+  }
+});
+
+// ─── DATA MAPPING ───────────────────────────────────────────────
+function rowToCand(r) {
+  return {
+    id: r.id, naam: r.naam, klant: r.klant, functie: r.functie,
+    type: r.type||'', fase: r.fase, datum: r.datum||'', tijd: r.tijd||'',
+    start: r.start||'', since: r.since||todayISO(), bron: r.bron||'',
+    geplaatstOp: r.geplaatst_op||'', gestoptOp: r.gestopt_op||'',
+    garantieMnd: r.garantie_mnd||0, reden: r.reden||'',
+    ooId: r.oo_id||null, vervangt: r.vervangt||'',
+    rec: r.rec||'', note: r.note||'',
+    _updatedBy: r.updated_by, _updatedAt: r.updated_at
+  };
+}
+function candToRow(c) {
+  return {
+    id: c.id, naam: c.naam, klant: c.klant||'', functie: c.functie||'',
+    type: c.type||'', fase: c.fase, datum: c.datum||'', tijd: c.tijd||'',
+    start: c.start||'', since: c.since||todayISO(), bron: c.bron||'',
+    geplaatst_op: c.geplaatstOp||'', gestopt_op: c.gestoptOp||'',
+    garantie_mnd: c.garantieMnd||0, reden: c.reden||'',
+    oo_id: c.ooId||null, vervangt: c.vervangt||'',
+    rec: c.rec||'', note: c.note||''
+  };
+}
+
+// ─── LOAD FROM SUPABASE ─────────────────────────────────────────
+async function loadFromDB() {
+  let attempts = 0;
+  let cR, clR, vR, sR, tR;
+  while (attempts < 3) {
+    [cR, clR, vR, sR, tR] = await Promise.all([
+      sb.from('candidates').select('*'),
+      sb.from('clients').select('*'),
+      sb.from('vacatures').select('*'),
+      sb.from('oo_sessions').select('*'),
+      sb.from('targets').select('*'),
+    ]);
+    if (!cR.error && !clR.error && !vR.error && !sR.error && !tR.error) break;
+    attempts++;
+    await new Promise(r => setTimeout(r, 800));
+  }
+  if (cR.error || clR.error || vR.error || sR.error || tR.error) {
+    toast('Fout bij laden data — herlaad de pagina');
+    console.error(cR.error, clR.error, vR.error, sR.error, tR.error);
+    return;
+  }
+  state.cands   = (cR.data||[]).map(rowToCand);
+  state.clients = (clR.data||[]).map(c => ({naam:c.naam, contact:c.contact||'', locatie:c.locatie||''}));
+  state.vacs    = (vR.data||[]).map(v => [v.klant, v.functie, v.type||'']);
+  state.sessions= (sR.data||[]).map(s => ({id:s.id, klant:s.klant, functie:s.functie, datum:s.datum, locatie:s.locatie||''}));
+  state.targets = {};
+  (tR.data||[]).forEach(t => {
+    if (t.maand === '__default') state.target = {maand: t.aantal};
+    else state.targets[t.maand] = t.aantal;
+  });
+  if (!state.target) state.target = {maand: 10};
+}
+
+// ─── SAVE FUNCTIONS ─────────────────────────────────────────────
+async function save() {} // no-op — replaced by targeted saves below
+
+async function _upsertCand(c) {
+  const row = { ...candToRow(c), updated_by: currentUser?.id, updated_at: new Date().toISOString() };
+  const { error } = await sb.from('candidates').upsert(row);
+  if (error) { console.error('saveCand', error); toast('Opslaan mislukt'); }
+}
+async function _deleteCandDB(id) {
+  await sb.from('candidates').delete().eq('id', id);
+}
+async function _upsertClient(client) {
+  await sb.from('clients').upsert({naam:client.naam, contact:client.contact||'', locatie:client.locatie||''}, {onConflict:'naam'});
+}
+async function _deleteClientDB(naam) {
+  await sb.from('clients').delete().eq('naam', naam);
+}
+async function _upsertVac(vac) {
+  await sb.from('vacatures').upsert({klant:vac[0], functie:vac[1], type:vac[2]||''}, {onConflict:'klant,functie'});
+}
+async function _deleteVacDB(klant, functie) {
+  await sb.from('vacatures').delete().eq('klant', klant).eq('functie', functie);
+}
+async function _upsertSession(session) {
+  await sb.from('oo_sessions').upsert(session);
+}
+async function _deleteSessionDB(id) {
+  await sb.from('oo_sessions').delete().eq('id', id);
+}
+async function _upsertTarget(maand, aantal) {
+  await sb.from('targets').upsert({maand, aantal});
+}
+
+// Full save for import/reset
+async function _saveAllState() {
+  if (!currentUser) return;
+  try {
+    // Delete all and re-insert
+    await Promise.all([
+      sb.from('candidates').delete().neq('id', '__never__'),
+      sb.from('clients').delete().neq('naam', '__never__'),
+      sb.from('vacatures').delete().neq('klant', '__never__'),
+      sb.from('oo_sessions').delete().neq('id', '__never__'),
+      sb.from('targets').delete().neq('maand', '__never__'),
+    ]);
+    const ts = new Date().toISOString();
+    if (state.cands.length) {
+      const rows = state.cands.map(c => ({...candToRow(c), updated_by: currentUser.id, updated_at: ts}));
+      await sb.from('candidates').insert(rows);
+    }
+    if (state.clients.length) await sb.from('clients').insert(state.clients);
+    if (state.vacs.length) await sb.from('vacatures').insert(state.vacs.map(v => ({klant:v[0],functie:v[1],type:v[2]||''})));
+    if (state.sessions.length) await sb.from('oo_sessions').insert(state.sessions);
+    const trows = Object.entries(state.targets||{}).map(([m,n]) => ({maand:m,aantal:n}));
+    trows.push({maand:'__default', aantal: state.target?.maand||10});
+    if (trows.length) await sb.from('targets').insert(trows);
+  } catch(e) { console.error('saveAll', e); toast('Opslaan mislukt'); }
+}
+
+// ─── REALTIME ───────────────────────────────────────────────────
+function setupRealtime() {
+  if (rtChannel) rtChannel.unsubscribe();
+  rtChannel = sb.channel('board-v1')
+    .on('postgres_changes', {event:'*', schema:'public', table:'candidates'}, payload => {
+      if (payload.eventType === 'DELETE') {
+        state.cands = state.cands.filter(c => c.id !== payload.old.id);
+      } else {
+        const cand = rowToCand(payload.new);
+        const idx = state.cands.findIndex(c => c.id === cand.id);
+        if (idx >= 0) state.cands[idx] = cand; else state.cands.push(cand);
+      }
+      render();
+    })
+    .on('postgres_changes', {event:'*', schema:'public', table:'clients'}, async () => {
+      const {data} = await sb.from('clients').select('*');
+      state.clients = (data||[]).map(c => ({naam:c.naam, contact:c.contact||'', locatie:c.locatie||''}));
+      refreshFilters(); render();
+    })
+    .on('postgres_changes', {event:'*', schema:'public', table:'vacatures'}, async () => {
+      const {data} = await sb.from('vacatures').select('*');
+      state.vacs = (data||[]).map(v => [v.klant, v.functie, v.type||'']);
+      refreshFilters(); render();
+    })
+    .on('postgres_changes', {event:'*', schema:'public', table:'oo_sessions'}, async () => {
+      const {data} = await sb.from('oo_sessions').select('*');
+      state.sessions = (data||[]).map(s => ({id:s.id, klant:s.klant, functie:s.functie, datum:s.datum, locatie:s.locatie||''}));
+      render();
+    })
+    .on('postgres_changes', {event:'*', schema:'public', table:'targets'}, async () => {
+      const {data} = await sb.from('targets').select('*');
+      state.targets = {};
+      (data||[]).forEach(t => {
+        if (t.maand === '__default') state.target = {maand: t.aantal};
+        else state.targets[t.maand] = t.aantal;
+      });
+      renderDash();
+    })
+    .subscribe();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ORIGINELE APP-LOGICA (ongewijzigd behalve save() → gerichte calls)
+// ═══════════════════════════════════════════════════════════════
+const STALE=10;
+const PHASES=[{k:'Voorselectie',c:'#9AA3AB'},{k:'Voorgesteld',c:'#5B8DB8'},{k:'O&O sessie',c:'#7E5AA6'},{k:'Eerste gesprek',c:'#4F86C6'},{k:'Tweede gesprek',c:'#3F77B8'},{k:'Meeloopdag',c:'#D9A441'},{k:'Offer',c:'#E8833A'},{k:'Info ontvangen',c:'#E0853F'},{k:'Contract ondertekenen',c:'#6FA06B'},{k:'Contract getekend',c:'#2F8F5B'},{k:'Gestart',c:'#1E7B4F'},{k:'Afgevallen',c:'#9AA3AB'},{k:'Gestopt',c:'#C0392B'}];
+const PLACED=['Contract getekend','Gestart'];
+const DONE=['Contract getekend','Gestart','Afgevallen','Gestopt'];
+const EXPECTSTART=['Meeloopdag','Offer','Info ontvangen','Contract ondertekenen'];
+const WEEKFASES=['O&O sessie','Eerste gesprek','Tweede gesprek','Meeloopdag','Offer','Info ontvangen'];
+const BRONNEN=['','Indeed','LinkedIn','Meta','Referral','Eigen werving','Anders'];
+const TYPEC={'W&S':'#2E7D8A','Detachering':'#E8833A','':'#B7AE9E'};
+const WD=['zo','ma','di','wo','do','vr','za'];
+const LOC={'Rijnbeek & Zoon Boskoop':'Boskoop','Rijnbeek & Zoon Berkel en Rodenrijs':'Berkel en Rodenrijs'};
+
+let state={clients:[],vacs:[],sessions:[],cands:[],target:{maand:10},targets:{}}, editing=null, selMonth=null;
+const $=s=>document.querySelector(s);
+
+const clients=()=>state.clients.map(c=>c.naam);
+const functies=()=>[...new Set(state.vacs.map(v=>v[1]))].sort((a,b)=>a.localeCompare(b));
+const locOf=k=>{const c=state.clients.find(x=>x.naam===k);return c?c.locatie:''};
+const mk=()=>todayISO().slice(0,7);
+function todayISO(){const t=new Date();return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0')+'-'+String(t.getDate()).padStart(2,'0')}
+function isoLocal(dt){return dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0')}
+function fmtFull(d){if(!d)return'';const dt=new Date(d);const p=d.split('-');return WD[dt.getDay()]+' '+p[2]+'-'+p[1]}
+function daysTo(d){if(!d)return 9999;return Math.round((new Date(d)-new Date(new Date().toDateString()))/864e5)}
+function daysAgo(d){if(!d)return 0;return Math.round((new Date(new Date().toDateString())-new Date(d))/864e5)}
+function esc(s){return(s||'').replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}
+function isStale(c){return!DONE.includes(c.fase)&&daysAgo(c.since)>=STALE}
+function repOf(c){return state.cands.find(x=>x.vervangt===c.id)}
+function stopOpen(c){return owesReplacement(c)&&!repOf(c)}
+function weekRange(){const t=new Date(new Date().toDateString());const dow=(t.getDay()+6)%7;const mon=new Date(t);mon.setDate(t.getDate()-dow);const sun=new Date(mon);sun.setDate(mon.getDate()+6);return[isoLocal(mon),isoLocal(sun)]}
+function sessCount(id){return state.cands.filter(c=>c.ooId===id&&c.fase==='O&O sessie').length}
+function sessClass(n){return n>=4?'green':n===3?'amber':'red'}
+const MND=['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+function monthLabel(mo){if(!mo||mo==='onbekend')return'Onbekend';const a=mo.split('-');return MND[+a[1]-1].charAt(0).toUpperCase()+MND[+a[1]-1].slice(1)+' '+a[0]}
+function addMonth(mo,d){let a=mo.split('-').map(Number),y=a[0],m=a[1]+d;while(m<1){m+=12;y--}while(m>12){m-=12;y++}return y+'-'+String(m).padStart(2,'0')}
+function targetFor(mo){return(state.targets&&state.targets[mo]!=null)?state.targets[mo]:((state.target&&state.target.maand!=null)?state.target.maand:10)}
+function mondayOf(dstr){const t=new Date(dstr);const dow=(t.getDay()+6)%7;t.setDate(t.getDate()-dow);return t}
+function isoWeek(dstr){const dt=new Date(dstr);const d=new Date(Date.UTC(dt.getFullYear(),dt.getMonth(),dt.getDate()));const day=(d.getUTCDay()+6)%7;d.setUTCDate(d.getUTCDate()-day+3);const ft=new Date(Date.UTC(d.getUTCFullYear(),0,4));return 1+Math.round(((d-ft)/864e5-3+((ft.getUTCDay()+6)%7))/7)}
+function weekKey(dstr){return isoLocal(mondayOf(dstr))}
+function weekLabel(dstr){const mon=mondayOf(dstr);const sun=new Date(mon);sun.setDate(mon.getDate()+6);const f=dt=>dt.getDate()+' '+MND[dt.getMonth()].slice(0,3);return'Week '+isoWeek(dstr)+' · '+f(mon)+'–'+f(sun)}
+function isCurrentWeek(dstr){return weekKey(dstr)===weekKey(todayISO())}
+function addMonthsDate(dstr,n){if(!dstr)return'';const d=new Date(dstr);d.setMonth(d.getMonth()+(n||0));return isoLocal(d)}
+function withinGarantie(c){const ref=c.start||c.geplaatstOp;if(!ref)return true;if(!c.gestoptOp)return true;return c.gestoptOp<=addMonthsDate(ref,c.garantieMnd)}
+function owesReplacement(c){return c.fase==='Gestopt'&&c.garantieMnd>0&&withinGarantie(c)}
+function garantieEnd(c){if(!(c.garantieMnd>0))return'';return addMonthsDate(c.start||c.geplaatstOp,c.garantieMnd)}
+function promoteStart(c){
+  if(c.fase==='Contract getekend'&&c.start&&c.start<=todayISO()){c.fase='Gestart';c.since=todayISO();return true}
+  return false;
+}
+
+function renderDash(){
+  if(!selMonth)selMonth=mk();
+  const m=selMonth,cur=mk(),isCur=m===cur;
+  const grossM=state.cands.filter(c=>(c.geplaatstOp||'').slice(0,7)===m);
+  const ws=grossM.filter(c=>c.type==='W&S').length,dt=grossM.filter(c=>c.type==='Detachering').length,onb=grossM.filter(c=>c.type!=='W&S'&&c.type!=='Detachering').length;
+  const gross=grossM.length;
+  const stopM=state.cands.filter(c=>c.fase==='Gestopt'&&(c.gestoptOp||'').slice(0,7)===m&&c.geplaatstOp&&!c.vervangt).length;
+  const tot=gross-stopM,tgt=targetFor(m),left=Math.max(0,tgt-tot),pct=tgt?Math.min(100,Math.round(Math.max(0,tot)/tgt*100)):0,hit=tgt>0&&tot>=tgt;
+  const startM=state.cands.filter(c=>PLACED.includes(c.fase)&&(c.start||'').slice(0,7)===m).length;
+  const[wmon,wsun]=weekRange();
+  const wk=f=>state.cands.filter(c=>c.fase===f&&c.datum&&c.datum>=wmon&&c.datum<=wsun).length;
+  const startsWk=state.cands.filter(c=>PLACED.includes(c.fase)&&c.start&&c.start>=wmon&&c.start<=wsun).length;
+  const proc=state.cands.filter(c=>!DONE.includes(c.fase)).length;
+  const stale=state.cands.filter(isStale).length,verv=state.cands.filter(stopOpen).length,notype=state.cands.filter(c=>PLACED.includes(c.fase)&&c.type!=='W&S'&&c.type!=='Detachering').length;
+  const kan={};state.cands.filter(c=>!DONE.includes(c.fase)).forEach(c=>{const b=c.bron||'Onbekend';kan[b]=(kan[b]||0)+1});
+  let wcells=WEEKFASES.map(f=>{const n=wk(f);return`<div class="wcell${n>0?' hot':''}"><div class="n">${n}</div><div class="l">${f}</div></div>`}).join('');
+  wcells+=`<div class="wcell start"><div class="n">${startsWk}</div><div class="l">Starts</div></div>`;
+  let kanrows=Object.entries(kan).sort((a,b)=>b[1]-a[1]).map(([k,n])=>`<div class="kl"><span>${esc(k)}</span><b>${n}</b></div>`).join('')||'<div class="kl" style="color:var(--muted)">—</div>';
+  $('#dash').innerHTML=
+  `<div class="panelbox tgt"><h4><button class="mbtn" id="tgtprev">◀</button><span>🎯 ${monthLabel(m)}${isCur?' · nu':''}</span><button class="mbtn" id="tgtnext">▶</button></h4>
+     <div><span class="big" style="color:${hit?'var(--green)':'var(--ink)'}">${tot}</span> <span class="sub">/ <input id="tgtinp" type="number" min="0" value="${tgt}"> netto plaatsingen</span></div>
+     <div class="bar"><i style="width:${pct}%;background:${hit?'var(--green)':'var(--glove)'}"></i></div>
+     <div class="sub" style="margin-top:6px;font-weight:700;color:${hit?'var(--green)':'var(--ink)'}">${hit?'✓ target gehaald':'nog '+left+' te gaan'}</div>
+     <div class="split"><span><span class="dot" style="background:${TYPEC['W&S']}"></span>W&amp;S <b>${ws}</b></span><span><span class="dot" style="background:${TYPEC['Detachering']}"></span>Deta <b>${dt}</b></span>${onb?`<span><span class="dot" style="background:#B7AE9E"></span>? <b>${onb}</b></span>`:''}<span><b>${gross}</b> getekend</span>${stopM?`<span style="color:var(--red)">−${stopM} gestopt</span>`:''}</div>
+     <div class="sub" style="margin-top:6px">▶ ${startM} starten deze maand · pijplijn ${proc}</div>
+   </div>
+   <div class="panelbox week"><h4>📅 Deze week (ma–zo) — maandagbespreking</h4><div class="wgrid">${wcells}</div>
+     <div class="chiprow" style="margin-top:10px"><span class="chip"><b>${proc}</b> in procedure</span><span class="chip warn"><b>${stale}</b> blijft hangen</span><span class="chip alert"><b>${verv}</b> vervanging nodig</span>${notype?`<span class="chip warn"><b>${notype}</b> zonder type</span>`:''}</div>
+   </div>
+   <div class="panelbox kan"><h4>📥 Kanaal (in procedure)</h4>${kanrows}</div>`;
+  $('#tgtinp').onchange=e=>{const v=+e.target.value||0;state.targets[m]=v;_upsertTarget(m,v);render()};
+  $('#tgtprev').onclick=()=>{selMonth=addMonth(selMonth,-1);renderDash()};
+  $('#tgtnext').onclick=()=>{selMonth=addMonth(selMonth,1);renderDash()};
+}
+
+function render(){
+  const promoted=[];state.cands.forEach(c=>{if(promoteStart(c))promoted.push(c)});
+  promoted.forEach(c=>_upsertCand(c));
+  const fk=$('#filter').value||'*',ff=$('#ffilter').value||'*',q=($('#search').value||'').toLowerCase().trim();
+  const match=c=>(fk==='*'||c.klant===fk)&&(ff==='*'||c.functie===ff)&&(!q||c.naam.toLowerCase().includes(q));
+  const byDate=(a,b)=>{const ax=a.datum||'',ay=b.datum||'';if(!ax&&!ay)return a.naam.localeCompare(b.naam);if(!ax)return 1;if(!ay)return-1;return ax<ay?1:ax>ay?-1:a.naam.localeCompare(b.naam)};
+  const gbc=!!state.groupByClient;
+  const board=$('#board');board.innerHTML='';
+  PHASES.forEach(ph=>{
+    const list=state.cands.filter(c=>c.fase===ph.k&&match(c)).sort(byDate);
+    if(ph.k==='Contract getekend')list.sort((a,b)=>{const x=a.start||'9999',y=b.start||'9999';return x<y?-1:x>y?1:a.naam.localeCompare(b.naam)});
+    if(ph.k==='Gestopt')list.sort((a,b)=>{const x=a.gestoptOp||'',y=b.gestoptOp||'';if(!x&&!y)return a.naam.localeCompare(b.naam);if(!x)return 1;if(!y)return-1;return x<y?1:x>y?-1:a.naam.localeCompare(b.naam)});
+    const col=document.createElement('div');
+    col.className='colm '+ph.k.toLowerCase().replace(/[^a-z]/g,'');col.style.setProperty('--ph',ph.c);
+    col.innerHTML=`<div class="chead"><h3>${ph.k}</h3><span class="count">${list.length}</span></div><div class="cbody"></div>`;
+    const body=col.querySelector('.cbody');
+    const WEEKCOLS=['Eerste gesprek','Tweede gesprek','Meeloopdag','Contract ondertekenen','Contract getekend','Gestart'];
+    const wdate=c=>(['Contract getekend','Gestart','Contract ondertekenen'].includes(ph.k)?c.start:c.datum);
+    if(gbc&&ph.k!=='O&O sessie'){let glist=list;if(ph.k==='Gestart'||ph.k==='Contract getekend'||ph.k==='Contract ondertekenen')glist=list.slice().sort((a,b)=>(a.start||'9999').localeCompare(b.start||'9999')||a.naam.localeCompare(b.naam));renderGroupedByClient(body,glist);}
+    else if(ph.k==='O&O sessie'){
+      const sess=state.sessions.filter(s=>(fk==='*'||s.klant===fk)).sort((a,b)=>(a.datum||'9999').localeCompare(b.datum||'9999'));
+      let cw=null;
+      sess.forEach(s=>{if(s.datum){const wkk=weekKey(s.datum);if(wkk!==cw){cw=wkk;const dv=document.createElement('div');dv.className='wdiv'+(isCurrentWeek(s.datum)?' now':'');dv.textContent=weekLabel(s.datum);body.appendChild(dv)}}
+        const n=sessCount(s.id);const mem=list.filter(c=>c.ooId===s.id);
+        const hd=document.createElement('div');hd.className='sess '+sessClass(n);
+        hd.innerHTML=`<span>${esc(s.klant||'?')} · ${esc(s.functie||'')}<small>📅 ${fmtFull(s.datum)||'geen datum'}${s.locatie?' · 📍 '+esc(s.locatie):''}</small></span><span>${n}/4</span>`;
+        hd.onclick=()=>openOO(s.id);body.appendChild(hd);mem.forEach(c=>body.appendChild(cardEl(c)))});
+      const orphan=list.filter(c=>!c.ooId||!state.sessions.find(s=>s.id===c.ooId));
+      if(orphan.length){const hd=document.createElement('div');hd.className='sess';hd.style.background='#9AA3AB';hd.style.cursor='default';hd.innerHTML='<span>Geen sessie</span>';body.appendChild(hd);orphan.forEach(c=>body.appendChild(cardEl(c)))}
+    }
+    else if(WEEKCOLS.includes(ph.k)){
+      if(ph.k==='Gestart'){const[gm,gs]=weekRange();const dz=list.filter(c=>c.start&&c.start>=gm&&c.start<=gs).length;const note=document.createElement('div');note.className='startnote';note.textContent='▶ Deze week: '+dz+' start'+(dz===1?'':'s');body.appendChild(note)}
+      renderWeekGrouped(body,list,wdate,ph.k!=='Gestart');
+    }
+    else list.forEach(c=>body.appendChild(cardEl(c)));
+    col.addEventListener('dragover',e=>{e.preventDefault();col.classList.add('drop')});
+    col.addEventListener('dragleave',()=>col.classList.remove('drop'));
+    col.addEventListener('drop',e=>{e.preventDefault();col.classList.remove('drop');move(e.dataTransfer.getData('id'),ph.k)});
+    board.appendChild(col);
+  });
+  board.appendChild(kaderEl(match));
+  document.querySelectorAll('.vbtn').forEach(b=>b.onclick=e=>{e.stopPropagation();const s=state.cands.find(x=>x.id===e.target.dataset.rep);openEdit(null,{klant:s.klant,functie:s.functie,type:s.type,vervangt:s.id})});
+  document.querySelectorAll('.rbtn').forEach(b=>b.onclick=e=>{e.stopPropagation();openReactivate(e.target.dataset.react)});
+  document.querySelectorAll('.krow').forEach(r=>r.onclick=()=>openEdit(r.dataset.id));
+  document.querySelectorAll('.movebtn').forEach(b=>b.onclick=e=>{e.stopPropagation();openPhasePicker(b.dataset.id)});
+  renderDash();
+}
+
+function kaderEl(match){
+  const placed=state.cands.filter(c=>PLACED.includes(c.fase)&&match(c));
+  const groups={};placed.forEach(c=>{const k=(c.geplaatstOp||'').slice(0,7)||'onbekend';(groups[k]=groups[k]||[]).push(c)});
+  const keys=Object.keys(groups).sort((a,b)=>b.localeCompare(a));
+  const col=document.createElement('div');col.className='colm kader';col.style.setProperty('--ph','#2F8F5B');
+  col.innerHTML=`<div class="khead"><div class="t"><span>📋 Geplaatst</span><span class="count" style="background:#2F8F5B">${placed.length}</span></div><div class="tt">chronologisch · meest recente bovenaan</div></div><div class="kbody"></div>`;
+  const body=col.querySelector('.kbody');
+  keys.forEach(k=>{
+    const items=groups[k].slice().sort((a,b)=>{const x=a.geplaatstOp||'',y=b.geplaatstOp||'';return x<y?1:x>y?-1:a.naam.localeCompare(b.naam)});
+    const g=document.createElement('div');g.className='kgrp2';g.textContent=monthLabel(k)+' · '+items.length+' plaatsing'+(items.length===1?'':'en');body.appendChild(g);
+    items.forEach(c=>{
+      const el=document.createElement('div');el.className='krow';el.dataset.id=c.id;el.style.setProperty('--type',TYPEC[c.type]||TYPEC['']);
+      const started=c.fase==='Gestart';
+      const badge=started?'<span class="kbadge">gestart</span>':(!c.start?'<span class="kbadge ntp">start plannen</span>':'');
+      const startTxt=c.start?((c.fase==='Gestart'&&c.start<=todayISO())?'▶ gestart '+fmtFull(c.start):'▶ start '+fmtFull(c.start)):'';
+      el.innerHTML=`<div class="kn">${esc(c.naam)}</div><div class="ks"><b>${esc(c.klant)}</b> · ${esc(c.functie)}</div><div class="kw">✍ ${c.geplaatstOp?fmtFull(c.geplaatstOp):'—'} ${badge}</div>${startTxt?`<div class="ks" style="color:#1E7B4F;margin-top:2px">${startTxt}</div>`:''}`;
+      body.appendChild(el);
+    });
+  });
+  if(!placed.length)body.innerHTML='<p style="color:var(--muted);font-size:13px;padding:6px">Nog geen plaatsingen.</p>';
+  col.addEventListener('dragover',e=>{e.preventDefault();col.classList.add('drop')});
+  col.addEventListener('dragleave',()=>col.classList.remove('drop'));
+  col.addEventListener('drop',e=>{e.preventDefault();col.classList.remove('drop');move(e.dataTransfer.getData('id'),'Contract getekend')});
+  return col;
+}
+
+function renderWeekGrouped(body,list,dateFn,asc){
+  const withD=list.filter(c=>dateFn(c)).slice().sort((a,b)=>{const x=dateFn(a),y=dateFn(b);if(x===y)return a.naam.localeCompare(b.naam);return asc?(x<y?-1:1):(x<y?1:-1)});
+  const noD=list.filter(c=>!dateFn(c));
+  let cw=null;
+  withD.forEach(c=>{const d=dateFn(c),wkk=weekKey(d);if(wkk!==cw){cw=wkk;const cnt=withD.filter(x=>weekKey(dateFn(x))===wkk).length;const dv=document.createElement('div');dv.className='wdiv'+(isCurrentWeek(d)?' now':'');dv.textContent=weekLabel(d)+' · '+cnt;body.appendChild(dv)}body.appendChild(cardEl(c))});
+  if(noD.length){const dv=document.createElement('div');dv.className='wdiv';dv.textContent='Nog te plannen';body.appendChild(dv);noD.forEach(c=>body.appendChild(cardEl(c)))}
+}
+
+function renderGroupedByClient(body,arr){
+  const order=[],groups={};
+  arr.forEach(c=>{if(!groups[c.klant]){groups[c.klant]=[];order.push(c.klant)}groups[c.klant].push(c)});
+  order.forEach(k=>{const hd=document.createElement('div');hd.className='cgrp';hd.innerHTML=`<span>${esc(k)}</span><span>${groups[k].length}</span>`;body.appendChild(hd);groups[k].forEach(c=>body.appendChild(cardEl(c)))});
+}
+
+function cardEl(c){
+  const el=document.createElement('div');el.className='card'+(isStale(c)?' stale':'');el.draggable=true;el.style.setProperty('--type',TYPEC[c.type]||TYPEC['']);
+  const placed=PLACED.includes(c.fase);const dd=placed?c.start:c.datum;const soon=dd&&daysTo(dd)>=0&&daysTo(dd)<=7;const loc=locOf(c.klant);
+  let h=`<div class="nm">${esc(c.naam)}</div><div class="sub"><b>${esc(c.klant)}</b> · ${esc(c.functie)}</div><div class="meta">${c.type?`<span class="tag type">${esc(c.type)}</span>`:(PLACED.includes(c.fase)?`<span class="tag typewarn">⚠ type?</span>`:`<span class="tag type">—</span>`)}`;
+  if(c.bron)h+=`<span class="tag bron">${esc(c.bron)}</span>`;
+  if((c.fase==='Afgevallen'||c.fase==='Gestopt')&&c.reden)h+=`<span class="tag reden">${esc(c.reden)}</span>`;
+  if(loc)h+=`<span class="tag loc">📍 ${esc(loc)}</span>`;
+  if(isStale(c))h+=`<span class="tag stale">⏳ ${daysAgo(c.since)} dgn</span>`;
+  if(c.vervangt&&state.cands.some(x=>x.id===c.vervangt))h+=`<span class="tag rep">↻ vervanger</span>`;
+  if(PLACED.includes(c.fase)&&c.garantieMnd>0){const ge=garantieEnd(c);if(ge&&ge>=todayISO())h+=`<span class="tag gar">🛡 garantie t/m ${fmtFull(ge)}</span>`}
+  h+=`</div>`;
+  if(dd){const lbl=placed?((c.fase==='Gestart'&&dd<=todayISO())?'▶ gestart':'▶ start'):'📅';const tt=(!placed&&c.tijd)?(' · '+c.tijd):'';const cls='when'+(placed?' start':(soon?' soon':''))+(c.fase==='Contract getekend'?' bigstart':'');h+=`<div class="${cls}">${lbl} ${fmtFull(dd)}${tt}</div>`}
+  if(EXPECTSTART.includes(c.fase)&&c.start)h+=`<div class="when verw">🎯 verw. start ${fmtFull(c.start)}</div>`;
+  if(c.fase==='Gestopt'&&c.gestoptOp)h+=`<div class="when stop">🛑 gestopt ${fmtFull(c.gestoptOp)}</div>`;
+  if(c.fase==='Gestopt'){const r=repOf(c);if(r&&PLACED.includes(r.fase))h+=`<div class="ribbon ok">✓ Vervangen door ${esc(r.naam)}</div>`;else if(r)h+=`<div class="ribbon mid">Vervanger: ${esc(r.naam)} · ${r.fase}</div>`;else if(owesReplacement(c))h+=`<div class="ribbon">Vervanging nodig <button class="vbtn" data-rep="${c.id}">+ Vervanger</button></div>`;else if(c.vervangt)h+=`<div class="ribbon none">Inruiler gestopt · geen target-effect</div>`;else h+=`<div class="ribbon none">Buiten garantie · geen vervanging</div>`}
+  if(c.fase==='Afgevallen')h+=`<div class="ribbon none">Recyclebaar <button class="rbtn" data-react="${c.id}">↺ Heractiveren</button></div>`;
+  // ── MOBIELE VERPLAATS-KNOP ──
+  h+=`<button class="movebtn" data-id="${c.id}">⇆ Verplaatsen naar andere fase</button>`;
+  el.innerHTML=h;
+  el.addEventListener('dragstart',e=>{e.dataTransfer.setData('id',c.id);el.classList.add('drag')});
+  el.addEventListener('dragend',()=>el.classList.remove('drag'));
+  el.addEventListener('click',()=>openEdit(c.id));
+  return el;
+}
+
+function move(id,fase){
+  const c=state.cands.find(x=>x.id===id);if(!c||c.fase===fase)return;
+  c.fase=fase;c.since=todayISO();
+  if(PLACED.includes(fase)&&!c.geplaatstOp)c.geplaatstOp=todayISO();
+  if(fase==='Gestopt')c.gestoptOp=todayISO();
+  if(fase!=='O&O sessie')c.ooId=null;
+  _upsertCand(c);render();toast(c.naam+' → '+fase);
+}
+
+// ─── MOBILE PHASE PICKER ────────────────────────────────────────
+let phasePickerCandId = null;
+function openPhasePicker(id) {
+  phasePickerCandId = id;
+  const c = state.cands.find(x=>x.id===id);
+  if(!c) return;
+  document.getElementById('phasetitle').textContent = c.naam + ' — verplaatsen naar…';
+  const list = document.getElementById('phaselist');
+  list.innerHTML = PHASES.map(ph => `
+    <button class="phopt${c.fase===ph.k?' cur':''}" data-fase="${ph.k}">
+      <span class="phc" style="background:${ph.c}"></span>${ph.k}${c.fase===ph.k?' ✓':''}
+    </button>`).join('');
+  list.querySelectorAll('.phopt').forEach(b => b.onclick = () => {
+    move(phasePickerCandId, b.dataset.fase);
+    document.getElementById('phasescrim').classList.remove('open');
+  });
+  document.getElementById('phasescrim').classList.add('open');
+}
+document.getElementById('phasescrim').onclick = e => {
+  if(e.target === document.getElementById('phasescrim')) document.getElementById('phasescrim').classList.remove('open');
+};
+
+function openEdit(id,prefill){
+  editing=id;const c=id?state.cands.find(x=>x.id===id):null;prefill=prefill||{};
+  $('#ptitle').textContent=c?c.naam:'Nieuwe kandidaat';
+  let sel=c?state.vacs.findIndex(v=>v[0]===c.klant&&v[1]===c.functie):(prefill.klant?state.vacs.findIndex(v=>v[0]===prefill.klant&&v[1]===prefill.functie):0);if(sel<0&&!c)sel=0;
+  let extra=(c&&sel<0)?`<option value="-1" selected>${esc(c.klant)} – ${esc(c.functie)} (verwijderd)</option>`:'';
+  $('#f_vac').innerHTML=extra+state.vacs.map((v,i)=>`<option value="${i}"${i===sel?' selected':''}>${esc(v[0])} – ${esc(v[1])}</option>`).join('');
+  $('#f_fase').innerHTML=PHASES.map(p=>`<option>${p.k}</option>`).join('');
+  $('#f_bron').innerHTML=BRONNEN.map(b=>`<option value="${b}">${b||'—'}</option>`).join('');
+  $('#f_verv').innerHTML='<option value="">—</option>'+state.cands.filter(x=>x.fase==='Gestopt'&&x.id!==id).map(x=>`<option value="${x.id}">${esc(x.naam)} (${esc(x.klant)})</option>`).join('');
+  $('#f_naam').value=c?c.naam:'';$('#f_fase').value=c?c.fase:'Voorselectie';$('#f_bron').value=c?c.bron:'';
+  $('#f_datum').value=c?c.datum:'';$('#f_tijd').value=c?(c.tijd||''):'';$('#f_start').value=c?c.start:'';$('#f_plaats').value=c?(c.geplaatstOp||''):'';$('#f_stop').value=c?(c.gestoptOp||''):'';$('#f_garantie').value=c?String(c.garantieMnd||0):'0';$('#f_rec').value=c?c.rec:'';$('#f_note').value=c?c.note:'';$('#f_verv').value=c?(c.vervangt||''):(prefill.vervangt||'');$('#f_reden').value=c?(c.reden||''):'';
+  // "Laatst gewijzigd door" info
+  const updEl = $('#f_updinfo');
+  if(c&&c._updatedAt) {
+    const byId = c._updatedBy;
+    const prof = currentProfile; // we know the current user — for others we'd need a join
+    const naam = byId === currentUser?.id ? (prof?.naam || 'jou') : 'collega';
+    const dt = new Date(c._updatedAt);
+    updEl.textContent = `Laatst gewijzigd door ${naam} op ${dt.toLocaleDateString('nl-NL')} ${dt.toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'})}`;
+  } else { updEl.textContent = ''; }
+  $('#f_del').style.display=c?'block':'none';$('#scrim').classList.add('open');setTimeout(()=>$('#f_naam').focus(),60);
+}
+
+$('#f_save').onclick=()=>{
+  const naam=$('#f_naam').value.trim();if(!naam){$('#f_naam').focus();return}
+  const vsel=$('#f_vac').value,cur=editing?state.cands.find(x=>x.id===editing):null;let klant,functie,type;
+  if(vsel==='-1'&&cur){klant=cur.klant;functie=cur.functie;type=cur.type}else{const v=state.vacs[+vsel];klant=v[0];functie=v[1];type=v[2]}
+  const nf=$('#f_fase').value;
+  const pv=$('#f_plaats').value,sv=$('#f_stop').value;
+  const data={naam,klant,functie,type,fase:nf,datum:$('#f_datum').value,tijd:$('#f_tijd').value,start:$('#f_start').value,bron:$('#f_bron').value,garantieMnd:+$('#f_garantie').value||0,reden:$('#f_reden').value,rec:$('#f_rec').value,note:$('#f_note').value,vervangt:$('#f_verv').value};
+  let efase=nf;if(PLACED.includes(nf)&&data.start){efase=data.start<=todayISO()?'Gestart':'Contract getekend';data.fase=efase}
+  let savedCand;
+  if(editing){
+    if(cur.fase!==efase)cur.since=todayISO();
+    data.geplaatstOp=PLACED.includes(efase)?(pv||cur.geplaatstOp||todayISO()):pv;
+    data.gestoptOp=efase==='Gestopt'?(sv||cur.gestoptOp||todayISO()):'';
+    if(efase!=='O&O sessie')data.ooId=null;else data.ooId=cur.ooId;
+    Object.assign(cur,data);savedCand=cur;
+  } else {
+    savedCand={id:'c'+Date.now(),since:todayISO(),ooId:null,gestoptOp:efase==='Gestopt'?(sv||todayISO()):'',geplaatstOp:PLACED.includes(efase)?(pv||todayISO()):pv,...data};
+    state.cands.push(savedCand);
+  }
+  _upsertCand(savedCand);render();$('#scrim').classList.remove('open');editing=null;toast('Opgeslagen');
+};
+$('#f_del').onclick=()=>{if(editing&&confirm('Kandidaat verwijderen?')){_deleteCandDB(editing);state.cands=state.cands.filter(x=>x.id!==editing);render();$('#scrim').classList.remove('open');editing=null;toast('Verwijderd')}};
+$('#f_cancel').onclick=()=>{$('#scrim').classList.remove('open');editing=null};
+$('#scrim').onclick=e=>{if(e.target===$('#scrim')){$('#scrim').classList.remove('open');editing=null}};
+$('#add').onclick=()=>openEdit(null);
+
+function refreshKlantSel(sel){const ks=clients();$('#m_klant').innerHTML=ks.length?ks.map(k=>`<option${k===sel?' selected':''}>${esc(k)}</option>`).join(''):'<option value="">— voeg eerst klant toe —</option>'}
+function openManage(){refreshKlantSel();$('#m_kname').value='';$('#m_kloc').value='';$('#m_kcontact').value='';$('#m_func').value='';$('#m_type').value='';renderVlist();$('#mscrim').classList.add('open')}
+function renderVlist(){
+  let h='';state.clients.forEach(cl=>{const k=cl.naam;h+=`<div class="kgrp">${esc(k)}${cl.locatie?' · '+esc(cl.locatie):''}<button class="x" data-delk="${esc(k)}" style="float:right">✕</button></div>`;let any=false;state.vacs.forEach((v,i)=>{if(v[0]!==k)return;any=true;h+=`<div class="vrow"><span class="vf">${esc(v[1])}</span><select data-i="${i}" class="vtype"><option value=""${v[2]===''?' selected':''}>—</option><option${v[2]==='Detachering'?' selected':''}>Detachering</option><option value="W&S"${v[2]==='W&S'?' selected':''}>W&amp;S</option></select><button class="x" data-del="${i}">✕</button></div>`});if(!any)h+=`<div class="vrow" style="color:var(--muted);font-size:12px">nog geen vacatures</div>`});
+  const vl=$('#vlist');vl.innerHTML=h||'<p style="color:var(--muted);font-size:13px">Nog geen klanten.</p>';
+  vl.querySelectorAll('.vtype').forEach(s=>s.onchange=e=>{const vac=state.vacs[+e.target.dataset.i];vac[2]=e.target.value;_upsertVac(vac);render();toast('Type bijgewerkt')});
+  vl.querySelectorAll('[data-del]').forEach(b=>b.onclick=e=>{e.stopPropagation();const i=+e.target.dataset.del,v=state.vacs[i];const u=state.cands.filter(c=>c.klant===v[0]&&c.functie===v[1]).length;if(confirm(`Vacature "${v[0]} – ${v[1]}" verwijderen?`+(u?`\n${u} kandidaat(en) blijven op het bord.`:''))){_deleteVacDB(v[0],v[1]);state.vacs.splice(i,1);renderVlist();render();refreshKlantSel();refreshFilters();toast('Verwijderd')}});
+  vl.querySelectorAll('[data-delk]').forEach(b=>b.onclick=e=>{e.stopPropagation();const k=e.target.dataset.delk,nv=state.vacs.filter(v=>v[0]===k).length;if(confirm(`Klant "${k}" verwijderen?`+(nv?`\nOok ${nv} vacature(s).`:''))){_deleteClientDB(k);state.vacs.filter(v=>v[0]===k).forEach(v=>_deleteVacDB(v[0],v[1]));state.clients=state.clients.filter(c=>c.naam!==k);state.vacs=state.vacs.filter(v=>v[0]!==k);renderVlist();render();refreshKlantSel();refreshFilters();toast('Klant verwijderd')}});
+}
+$('#m_addklant').onclick=()=>{const n=$('#m_kname').value.trim();if(!n){$('#m_kname').focus();return}if(state.clients.some(c=>c.naam===n)){toast('Bestaat al');return}const newClient={naam:n,contact:$('#m_kcontact').value.trim(),locatie:$('#m_kloc').value.trim()};state.clients.push(newClient);_upsertClient(newClient);refreshKlantSel(n);renderVlist();refreshFilters();$('#m_kname').value='';$('#m_kloc').value='';$('#m_kcontact').value='';toast('Klant toegevoegd')};
+$('#m_add').onclick=()=>{const klant=$('#m_klant').value;if(!klant){toast('Voeg eerst een klant toe');return}const functie=$('#m_func').value.trim();if(!functie){$('#m_func').focus();return}if(state.vacs.some(v=>v[0]===klant&&v[1]===functie)){toast('Bestaat al');return}const newVac=[klant,functie,$('#m_type').value];state.vacs.push(newVac);_upsertVac(newVac);renderVlist();render();$('#m_func').value='';$('#m_type').value='';refreshFilters();toast('Vacature toegevoegd')};
+$('#manage').onclick=openManage;$('#m_close').onclick=()=>$('#mscrim').classList.remove('open');$('#mscrim').onclick=e=>{if(e.target===$('#mscrim'))$('#mscrim').classList.remove('open')};
+
+let ooEditing=null;
+function fillOoFunc(){const k=$('#o_klant').value;const fs=state.vacs.filter(v=>v[0]===k).map(v=>v[1]);$('#o_func').innerHTML=fs.length?fs.map(f=>`<option>${esc(f)}</option>`).join(''):'<option value="">(geen vacature)</option>'}
+function openOO(sid){
+  ooEditing=sid||null;
+  $('#o_sel').innerHTML='<option value="__new">➕ Nieuwe sessie</option>'+state.sessions.map(s=>`<option value="${s.id}"${s.id===sid?' selected':''}>${fmtFull(s.datum)||'?'} · ${esc(s.klant)} – ${esc(s.functie)} (${sessCount(s.id)})</option>`).join('');
+  $('#o_klant').innerHTML=clients().map(k=>`<option>${esc(k)}</option>`).join('');
+  $('#o_newbron').innerHTML=BRONNEN.map(b=>`<option value="${b}">${b||'kanaal'}</option>`).join('');
+  if(!sid)$('#o_sel').value='__new';ooSelChange();$('#oscrim').classList.add('open');
+}
+function ooSelChange(){
+  const v=$('#o_sel').value;const s=v==='__new'?null:state.sessions.find(x=>x.id===v);ooEditing=s?s.id:null;$('#o_del').style.display=ooEditing?'':'none';
+  $('#o_klant').value=s?s.klant:clients()[0]||'';fillOoFunc();if(s)$('#o_func').value=s.functie;
+  $('#o_datum').value=s?s.datum:'';$('#o_loc').value=s?s.locatie:locOf($('#o_klant').value);renderOoList();
+}
+function renderOoList(){
+  const sid=ooEditing,k=$('#o_klant').value;
+  const pool=state.cands.filter(c=>(c.klant===k&&!DONE.includes(c.fase))||(sid&&c.ooId===sid));
+  $('#o_list').innerHTML=pool.map(c=>`<label class="chk"><input type="checkbox" value="${c.id}"${c.ooId===sid&&sid?' checked':''}><span class="ci"><b>${esc(c.naam)}</b><span>${esc(c.functie)} · ${c.fase}${c.bron?' · '+esc(c.bron):''}</span></span></label>`).join('')||'<p style="color:var(--muted);font-size:13px">Nog geen kandidaten voor deze klant.</p>';
+}
+$('#o_sel').onchange=ooSelChange;$('#o_klant').onchange=()=>{fillOoFunc();if(!$('#o_loc').value)$('#o_loc').value=locOf($('#o_klant').value);renderOoList()};
+$('#o_addcand').onclick=()=>{
+  const naam=$('#o_newnaam').value.trim();if(!naam){$('#o_newnaam').focus();return}
+  const k=$('#o_klant').value,f=$('#o_func').value;
+  const nc={id:'c'+Date.now(),naam,klant:k,functie:f,type:(state.vacs.find(v=>v[0]===k&&v[1]===f)||[,,''])[2],fase:'O&O sessie',datum:$('#o_datum').value,start:'',since:todayISO(),bron:$('#o_newbron').value,geplaatstOp:'',gestoptOp:'',ooId:ooEditing||'__pending',vervangt:'',rec:'',note:'',garantieMnd:0,reden:'',tijd:''};
+  state.cands.push(nc);$('#o_newnaam').value='';renderOoList();
+  setTimeout(()=>{const cb=[...$('#o_list').querySelectorAll('input')].find(i=>i.value===nc.id);if(cb)cb.checked=true},10);
+  toast('Kandidaat toegevoegd — vergeet niet op te slaan');
+};
+$('#o_save').onclick=()=>{
+  const datum=$('#o_datum').value;if(!datum){$('#o_datum').focus();return}
+  let sid=ooEditing;const k=$('#o_klant').value,f=$('#o_func').value,loc=$('#o_loc').value.trim();
+  if(!sid){sid='s'+Date.now();state.sessions.push({id:sid,klant:k,functie:f,datum,locatie:loc})}
+  else{Object.assign(state.sessions.find(x=>x.id===sid),{klant:k,functie:f,datum,locatie:loc})}
+  _upsertSession(state.sessions.find(x=>x.id===sid));
+  const checked=[...$('#o_list').querySelectorAll('input:checked')].map(i=>i.value);
+  state.cands.forEach(c=>{if(c.ooId==='__pending')c.ooId=null});
+  state.cands.forEach(c=>{
+    if(checked.includes(c.id)){if(c.fase!=='O&O sessie')c.since=todayISO();c.fase='O&O sessie';c.ooId=sid;c.datum=datum;_upsertCand(c)}
+    else if(c.ooId===sid){c.ooId=null;_upsertCand(c)}
+  });
+  render();$('#oscrim').classList.remove('open');toast('O&O-sessie opgeslagen');
+};
+$('#o_del').onclick=()=>{if(!ooEditing)return;const s=state.sessions.find(x=>x.id===ooEditing),n=sessCount(ooEditing);if(confirm('O&O-sessie verwijderen?'+(n?'\n'+n+' kandidaten raken los van de sessie.':''))){state.cands=state.cands.filter(c=>c.ooId!=='__pending');state.cands.forEach(c=>{if(c.ooId===ooEditing){c.ooId=null;_upsertCand(c)}});_deleteSessionDB(ooEditing);state.sessions=state.sessions.filter(x=>x.id!==ooEditing);render();$('#oscrim').classList.remove('open');toast('Sessie verwijderd')}};
+$('#planoo').onclick=()=>openOO(null);
+$('#o_close').onclick=()=>{state.cands=state.cands.filter(c=>c.ooId!=='__pending');$('#oscrim').classList.remove('open')};
+$('#oscrim').onclick=e=>{if(e.target===$('#oscrim')){state.cands=state.cands.filter(c=>c.ooId!=='__pending');$('#oscrim').classList.remove('open')}};
+
+let reactCand=null;
+function fillRFunc(){const k=$('#r_klant').value;const fs=state.vacs.filter(v=>v[0]===k).map(v=>v[1]);$('#r_func').innerHTML=fs.length?fs.map(f=>`<option>${esc(f)}</option>`).join(''):'<option value="">(geen vacature)</option>'}
+function openReactivate(id){const c=state.cands.find(x=>x.id===id);if(!c)return;reactCand=id;$('#r_klant').innerHTML=clients().map(k=>`<option${k===c.klant?' selected':''}>${esc(k)}</option>`).join('');$('#r_who').textContent=c.naam+' — eerder: '+c.klant+' · '+c.functie+(c.reden?' ('+c.reden+')':'');fillRFunc();if(state.vacs.some(v=>v[0]===c.klant&&v[1]===c.functie))$('#r_func').value=c.functie;$('#rscrim').classList.add('open')}
+$('#r_klant').onchange=fillRFunc;
+$('#r_go').onclick=()=>{const c=state.cands.find(x=>x.id===reactCand);if(!c)return;const k=$('#r_klant').value,f=$('#r_func').value;if(!f){toast('Kies een vacature');return}const v=state.vacs.find(x=>x[0]===k&&x[1]===f);c.klant=k;c.functie=f;c.type=v?v[2]:'';c.fase='Voorselectie';c.since=todayISO();c.reden='';_upsertCand(c);render();$('#rscrim').classList.remove('open');toast(c.naam+' → Voorselectie ('+k+')')};
+$('#r_cancel').onclick=()=>$('#rscrim').classList.remove('open');
+$('#rscrim').onclick=e=>{if(e.target===$('#rscrim'))$('#rscrim').classList.remove('open')};
+
+function refreshFilters(){const ck=$('#filter').value,cf=$('#ffilter').value;$('#filter').innerHTML=`<option value="*">Alle klanten</option>`+clients().map(k=>`<option${k===ck?' selected':''}>${esc(k)}</option>`).join('');$('#ffilter').innerHTML=`<option value="*">Alle functies</option>`+functies().map(f=>`<option${f===cf?' selected':''}>${esc(f)}</option>`).join('')}
+$('#filter').onchange=render;$('#ffilter').onchange=render;$('#search').oninput=render;
+
+// EXPORT
+$('#exportbtn').onclick=()=>{
+  const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ploeggenoten-bord-'+todayISO()+'.json';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1500);toast('Bord geëxporteerd');
+};
+
+// IMPORT (alleen admin)
+$('#importbtn').onclick=()=>$('#importfile').click();
+$('#importfile').onchange=e=>{
+  const f=e.target.files&&e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=async()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(!d||!Array.isArray(d.cands)||!Array.isArray(d.vacs))throw 0;
+      if(!confirm('Dit vervangt het volledige bord in de database. Doorgaan?')){e.target.value='';return}
+      state=d;
+      if(!state.clients)state.clients=[...new Set(state.vacs.map(v=>v[0]))].map(n=>({naam:n,contact:'',locatie:''}));
+      if(!state.sessions)state.sessions=[];if(!state.target)state.target={maand:10};if(!state.targets)state.targets={};
+      state.clients.forEach(c=>{if(c.locatie===undefined)c.locatie=''});
+      state.cands.forEach(c=>{if(!c.since)c.since=todayISO();if(c.ooId===undefined)c.ooId=null;if(c.vervangt===undefined)c.vervangt='';if(c.bron===undefined)c.bron='';if(c.geplaatstOp===undefined)c.geplaatstOp='';if(c.gestoptOp===undefined)c.gestoptOp='';if(c.start===undefined)c.start='';if(c.garantieMnd===undefined)c.garantieMnd=0;if(c.reden===undefined)c.reden='';if(c.tijd===undefined)c.tijd=''});
+      toast('Opslaan in database…');
+      await _saveAllState();
+      refreshFilters();render();toast('Bord geïmporteerd ✓');
+    }catch(err){toast('Ongeldig bestand')}
+    e.target.value='';
+  };r.readAsText(f);
+};
+
+function syncGroupBtn(){const b=$('#grouptoggle');if(!b)return;b.textContent=state.groupByClient?'Klantweergave: aan':'Groepeer op klant';b.classList.toggle('on',!!state.groupByClient)}
+$('#grouptoggle').onclick=()=>{state.groupByClient=!state.groupByClient;syncGroupBtn();render()};
+
+// ─── ADMIN PANEL ────────────────────────────────────────────────
+$('#adminbtn').onclick=openAdmin;
+$('#admin_close').onclick=()=>$('#adminscrim').classList.remove('open');
+$('#adminscrim').onclick=e=>{if(e.target===$('#adminscrim'))$('#adminscrim').classList.remove('open')};
+
+async function openAdmin(){
+  $('#adminscrim').classList.add('open');
+  const{data:profiles}=await sb.from('profiles').select('*').order('created_at');
+  const ul=$('#userlist');
+  if(!profiles?.length){ul.innerHTML='<p style="color:var(--muted);font-size:13px">Geen gebruikers gevonden.</p>';return}
+  ul.innerHTML='<b style="font-size:12px;color:var(--muted)">ACTIEVE GEBRUIKERS</b>'+profiles.map(p=>`
+    <div class="urow">
+      <div><div class="uname">${esc(p.naam||'—')}</div><div class="uemail">${esc(p.email||'')}</div></div>
+      <select class="urole" data-uid="${p.id}">
+        <option value="am"${p.rol==='am'?' selected':''}>Account Manager</option>
+        <option value="admin"${p.rol==='admin'?' selected':''}>Beheerder</option>
+      </select>
+    </div>`).join('');
+  ul.querySelectorAll('.urole').forEach(sel=>sel.onchange=async e=>{
+    await sb.from('profiles').update({rol:e.target.value}).eq('id',e.target.dataset.uid);
+    toast('Rol bijgewerkt');
+  });
+}
+
+let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),1900)}
+</script>

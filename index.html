@@ -256,7 +256,7 @@ select,.vtype{background:#1b2211;color:var(--txt);border:1px solid var(--line);b
       <b style="font-size:12px;color:var(--muted)">NIEUWE VACATURE</b>
       <select class="field" id="m_klant" style="color:#fff"></select>
       <input class="field" id="m_func" placeholder="Functietitel" style="color:#fff">
-      <select class="field" id="m_type" style="color:#fff"><option value="">— type —</option><option value="W&S">W&amp;S</option><option value="Detachering">Detachering</option></select>
+      <select class="field" id="m_type" style="color:#fff"><option value="">— type —</option><option value="W&S">W&amp;S</option><option value="Flex">Flex</option></select>
       <button class="btn" id="m_add">Vacature toevoegen</button>
     </div>
     <hr style="border:none;border-top:1px solid var(--line)">
@@ -560,7 +560,7 @@ const DONE=['Contract getekend','Gestart','Afgevallen','Gestopt'];
 const EXPECTSTART=['Meeloopdag','Offer','Info ontvangen','Contract ondertekenen'];
 const WEEKFASES=['O&O sessie','Eerste gesprek','Tweede gesprek','Meeloopdag','Offer','Info ontvangen'];
 const BRONNEN=['','Indeed','LinkedIn','Meta','Referral','Eigen werving','Anders'];
-const TYPEC={'W&S':'#2E7D8A','Detachering':'#E8833A','':'#B7AE9E'};
+const TYPEC={'W&S':'#2E7D8A','Flex':'#E8833A','':'#B7AE9E'};
 const WD=['zo','ma','di','wo','do','vr','za'];
 const LOC={'Rijnbeek & Zoon Boskoop':'Boskoop','Rijnbeek & Zoon Berkel en Rodenrijs':'Berkel en Rodenrijs'};
 
@@ -605,7 +605,7 @@ function renderDash(){
   if(!selMonth)selMonth=mk();
   const m=selMonth,cur=mk(),isCur=m===cur;
   const grossM=state.cands.filter(c=>(c.geplaatstOp||'').slice(0,7)===m);
-  const ws=grossM.filter(c=>c.type==='W&S').length,dt=grossM.filter(c=>c.type==='Detachering').length,onb=grossM.filter(c=>c.type!=='W&S'&&c.type!=='Detachering').length;
+  const ws=grossM.filter(c=>c.type==='W&S').length,dt=grossM.filter(c=>c.type==='Flex').length,onb=grossM.filter(c=>c.type!=='W&S'&&c.type!=='Flex').length;
   const gross=grossM.length;
   const stopM=state.cands.filter(c=>c.fase==='Gestopt'&&(c.gestoptOp||'').slice(0,7)===m&&c.geplaatstOp&&!c.vervangt).length;
   const tot=gross-stopM,tgt=targetFor(m),left=Math.max(0,tgt-tot),pct=tgt?Math.min(100,Math.round(Math.max(0,tot)/tgt*100)):0,hit=tgt>0&&tot>=tgt;
@@ -614,7 +614,7 @@ function renderDash(){
   const wk=f=>state.cands.filter(c=>c.fase===f&&c.datum&&c.datum>=wmon&&c.datum<=wsun).length;
   const startsWk=state.cands.filter(c=>PLACED.includes(c.fase)&&c.start&&c.start>=wmon&&c.start<=wsun).length;
   const proc=state.cands.filter(c=>!DONE.includes(c.fase)).length;
-  const stale=state.cands.filter(isStale).length,verv=state.cands.filter(stopOpen).length,notype=state.cands.filter(c=>PLACED.includes(c.fase)&&c.type!=='W&S'&&c.type!=='Detachering').length;
+  const stale=state.cands.filter(isStale).length,verv=state.cands.filter(stopOpen).length,notype=state.cands.filter(c=>PLACED.includes(c.fase)&&c.type!=='W&S'&&c.type!=='Flex').length;
   const kan={};state.cands.filter(c=>!DONE.includes(c.fase)).forEach(c=>{const b=c.bron||'Onbekend';kan[b]=(kan[b]||0)+1});
   let wcells=WEEKFASES.map(f=>{const n=wk(f);return`<div class="wcell${n>0?' hot':''}"><div class="n">${n}</div><div class="l">${f}</div></div>`}).join('');
   wcells+=`<div class="wcell start"><div class="n">${startsWk}</div><div class="l">Starts</div></div>`;
@@ -624,7 +624,7 @@ function renderDash(){
      <div><span class="big" style="color:${hit?'var(--green)':'var(--txt)'}">${tot}</span> <span class="sub">/ <input id="tgtinp" type="number" min="0" value="${tgt}"> netto plaatsingen</span></div>
      <div class="bar"><i style="width:${pct}%;background:${hit?'var(--green)':'var(--glove)'}"></i></div>
      <div class="sub" style="margin-top:6px;font-weight:700;color:${hit?'var(--green)':'var(--txt)'}">${hit?'✓ target gehaald':'nog '+left+' te gaan'}</div>
-     <div class="split"><span><span class="dot" style="background:${TYPEC['W&S']}"></span>W&amp;S <b>${ws}</b></span><span><span class="dot" style="background:${TYPEC['Detachering']}"></span>Deta <b>${dt}</b></span>${onb?`<span><span class="dot" style="background:#B7AE9E"></span>? <b>${onb}</b></span>`:''}<span><b>${gross}</b> getekend</span>${stopM?`<span style="color:var(--red)">−${stopM} gestopt</span>`:''}</div>
+     <div class="split"><span><span class="dot" style="background:${TYPEC['W&S']}"></span>W&amp;S <b>${ws}</b></span><span><span class="dot" style="background:${TYPEC['Flex']}"></span>Flex <b>${dt}</b></span>${onb?`<span><span class="dot" style="background:#B7AE9E"></span>? <b>${onb}</b></span>`:''}<span><b>${gross}</b> getekend</span>${stopM?`<span style="color:var(--red)">−${stopM} gestopt</span>`:''}</div>
      <div class="sub" style="margin-top:6px">▶ ${startM} starten deze maand · pijplijn ${proc}</div>
    </div>
    <div class="panelbox week"><h4>📅 Deze week (ma–zo) — maandagbespreking</h4><div class="wgrid">${wcells}</div>
@@ -837,7 +837,7 @@ $('#add').onclick=()=>openEdit(null);
 function refreshKlantSel(sel){const ks=clients();$('#m_klant').innerHTML=ks.length?ks.map(k=>`<option${k===sel?' selected':''}>${esc(k)}</option>`).join(''):'<option value="">— voeg eerst klant toe —</option>'}
 function openManage(){refreshKlantSel();$('#m_kname').value='';$('#m_kloc').value='';$('#m_kcontact').value='';$('#m_func').value='';$('#m_type').value='';renderVlist();$('#mscrim').classList.add('open')}
 function renderVlist(){
-  let h='';state.clients.forEach(cl=>{const k=cl.naam;h+=`<div class="kgrp">${esc(k)}${cl.locatie?' · '+esc(cl.locatie):''}<button class="x" data-delk="${esc(k)}" style="float:right">✕</button></div>`;let any=false;state.vacs.forEach((v,i)=>{if(v[0]!==k)return;any=true;h+=`<div class="vrow"><span class="vf">${esc(v[1])}${v[3]?`<span class="vage">· ${daysAgo(v[3])}d open</span>`:``}</span><select data-i="${i}" class="vtype"><option value=""${v[2]===''?' selected':''}>—</option><option${v[2]==='Detachering'?' selected':''}>Detachering</option><option value="W&S"${v[2]==='W&S'?' selected':''}>W&amp;S</option></select><button class="x" data-del="${i}">✕</button></div>`});if(!any)h+=`<div class="vrow" style="color:var(--muted);font-size:12px">nog geen vacatures</div>`});
+  let h='';state.clients.forEach(cl=>{const k=cl.naam;h+=`<div class="kgrp">${esc(k)}${cl.locatie?' · '+esc(cl.locatie):''}<button class="x" data-delk="${esc(k)}" style="float:right">✕</button></div>`;let any=false;state.vacs.forEach((v,i)=>{if(v[0]!==k)return;any=true;h+=`<div class="vrow"><span class="vf">${esc(v[1])}${v[3]?`<span class="vage">· ${daysAgo(v[3])}d open</span>`:``}</span><select data-i="${i}" class="vtype"><option value=""${v[2]===''?' selected':''}>—</option><option${v[2]==='Flex'?' selected':''}>Flex</option><option value="W&S"${v[2]==='W&S'?' selected':''}>W&amp;S</option></select><button class="x" data-del="${i}">✕</button></div>`});if(!any)h+=`<div class="vrow" style="color:var(--muted);font-size:12px">nog geen vacatures</div>`});
   const vl=$('#vlist');vl.innerHTML=h||'<p style="color:var(--muted);font-size:13px">Nog geen klanten.</p>';
   vl.querySelectorAll('.vtype').forEach(s=>s.onchange=e=>{const vac=state.vacs[+e.target.dataset.i];vac[2]=e.target.value;_upsertVac(vac);render();toast('Type bijgewerkt')});
   vl.querySelectorAll('[data-del]').forEach(b=>b.onclick=e=>{e.stopPropagation();const i=+e.target.dataset.del,v=state.vacs[i];const u=state.cands.filter(c=>c.klant===v[0]&&c.functie===v[1]).length;if(confirm(`Vacature "${v[0]} – ${v[1]}" verwijderen?`+(u?`\n${u} kandidaat(en) blijven op het bord.`:''))){_deleteVacDB(v[0],v[1]);state.vacs.splice(i,1);renderVlist();render();refreshKlantSel();refreshFilters();toast('Verwijderd')}});

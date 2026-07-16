@@ -222,6 +222,8 @@ textarea{resize:vertical;min-height:70px}
     <label class="fl">Plaatsingsdatum (= factuurdatum)<input type="date" id="f_plaats"></label>
     <label class="fl">Stopdatum<input type="date" id="f_stop"></label>
     <label class="fl">Garantie (maanden)<select id="f_garantie"><option value="0">Geen</option><option value="1">1 maand</option><option value="2">2 maanden</option><option value="3">3 maanden</option></select></label>
+    <label class="fl">Bruto maandloon (indicatie)<input id="f_loon" type="number" min="0" step="50" placeholder="bijv. 3000"></label>
+    <label class="fl">Ploegentoeslag %<input id="f_toeslag" type="number" min="0" max="100" step="1" placeholder="0"></label>
     <label class="fl">Recruiter<input id="f_rec" placeholder="Naam recruiter"></label>
     <label class="fl">Vervangt (koppel aan gestopte)<select id="f_verv"></select></label>
     <label class="fl">Reden afwijzing/stop<input id="f_reden" placeholder="Optioneel"></label>
@@ -394,7 +396,7 @@ function rowToCand(r) {
     type: r.type||'', fase: r.fase, datum: r.datum||'', tijd: r.tijd||'',
     start: r.start||'', since: r.since||todayISO(), bron: r.bron||'',
     geplaatstOp: r.geplaatst_op||'', gestoptOp: r.gestopt_op||'',
-    garantieMnd: r.garantie_mnd||0, reden: r.reden||'',
+    garantieMnd: r.garantie_mnd||0, maandloon: r.maandloon||null, toeslagPct: r.toeslag_pct||null, reden: r.reden||'',
     ooId: r.oo_id||null, vervangt: r.vervangt||'',
     rec: r.rec||'', note: r.note||'',
     _updatedBy: r.updated_by, _updatedAt: r.updated_at
@@ -406,7 +408,7 @@ function candToRow(c) {
     type: c.type||'', fase: c.fase, datum: c.datum||'', tijd: c.tijd||'',
     start: c.start||'', since: c.since||todayISO(), bron: c.bron||'',
     geplaatst_op: c.geplaatstOp||'', gestopt_op: c.gestoptOp||'',
-    garantie_mnd: c.garantieMnd||0, reden: c.reden||'',
+    garantie_mnd: c.garantieMnd||0, maandloon: c.maandloon||null, toeslag_pct: c.toeslagPct||null, reden: c.reden||'',
     oo_id: c.ooId||null, vervangt: c.vervangt||'',
     rec: c.rec||'', note: c.note||''
   };
@@ -785,7 +787,7 @@ function openEdit(id,prefill){
   $('#f_bron').innerHTML=BRONNEN.map(b=>`<option value="${b}">${b||'—'}</option>`).join('');
   $('#f_verv').innerHTML='<option value="">—</option>'+state.cands.filter(x=>x.fase==='Gestopt'&&x.id!==id).map(x=>`<option value="${x.id}">${esc(x.naam)} (${esc(x.klant)})</option>`).join('');
   $('#f_naam').value=c?c.naam:'';$('#f_fase').value=c?c.fase:'Voorselectie';$('#f_bron').value=c?c.bron:'';
-  $('#f_datum').value=c?c.datum:'';$('#f_tijd').value=c?(c.tijd||''):'';$('#f_start').value=c?c.start:'';$('#f_plaats').value=c?(c.geplaatstOp||''):'';$('#f_stop').value=c?(c.gestoptOp||''):'';$('#f_garantie').value=c?String(c.garantieMnd||0):'0';$('#f_rec').value=c?c.rec:'';$('#f_note').value=c?c.note:'';$('#f_verv').value=c?(c.vervangt||''):(prefill.vervangt||'');$('#f_reden').value=c?(c.reden||''):'';
+  $('#f_datum').value=c?c.datum:'';$('#f_tijd').value=c?(c.tijd||''):'';$('#f_start').value=c?c.start:'';$('#f_plaats').value=c?(c.geplaatstOp||''):'';$('#f_stop').value=c?(c.gestoptOp||''):'';$('#f_garantie').value=c?String(c.garantieMnd||0):'0';$('#f_loon').value=c?(c.maandloon||''):'';$('#f_toeslag').value=c?(c.toeslagPct||''):'';$('#f_rec').value=c?c.rec:'';$('#f_note').value=c?c.note:'';$('#f_verv').value=c?(c.vervangt||''):(prefill.vervangt||'');$('#f_reden').value=c?(c.reden||''):'';
   // "Laatst gewijzigd door" info
   const updEl = $('#f_updinfo');
   if(c&&c._updatedAt) {
@@ -804,7 +806,7 @@ $('#f_save').onclick=()=>{
   if(vsel==='-1'&&cur){klant=cur.klant;functie=cur.functie;type=cur.type}else{const v=state.vacs[+vsel];klant=v[0];functie=v[1];type=v[2]}
   const nf=$('#f_fase').value;
   const pv=$('#f_plaats').value,sv=$('#f_stop').value;
-  const data={naam,klant,functie,type,fase:nf,datum:$('#f_datum').value,tijd:$('#f_tijd').value,start:$('#f_start').value,bron:$('#f_bron').value,garantieMnd:+$('#f_garantie').value||0,reden:$('#f_reden').value,rec:$('#f_rec').value,note:$('#f_note').value,vervangt:$('#f_verv').value};
+  const data={naam,klant,functie,type,fase:nf,datum:$('#f_datum').value,tijd:$('#f_tijd').value,start:$('#f_start').value,bron:$('#f_bron').value,garantieMnd:+$('#f_garantie').value||0,maandloon:$('#f_loon').value?+$('#f_loon').value:null,toeslagPct:$('#f_toeslag').value?+$('#f_toeslag').value:null,reden:$('#f_reden').value,rec:$('#f_rec').value,note:$('#f_note').value,vervangt:$('#f_verv').value};
   let efase=nf;if(PLACED.includes(nf)&&data.start){efase=data.start<=todayISO()?'Gestart':'Contract getekend';data.fase=efase}
   let savedCand;
   if(editing){

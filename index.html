@@ -150,6 +150,11 @@ textarea{resize:vertical;min-height:70px}
 select,.vtype{background:#ffffff;color:var(--txt);border:1px solid var(--line);border-radius:6px}
 #dash{display:flex;flex-wrap:wrap;gap:12px;flex:1 1 100%;width:100%}
 .board.compact .card{padding:6px 8px;border-left-width:5px;border-radius:8px}.board.compact .card .nm{font-size:13px}.board.compact .card .sub{font-size:11px;margin-top:1px}.board.compact .card .when{font-size:12px;padding:2px 7px;margin-top:5px}.board.compact .card .meta{margin-top:4px;gap:4px}.board.compact .card .tag{font-size:10px;padding:1px 6px}.board.compact .card .kw{font-size:11px;margin-top:3px}.board.compact .colm,.board.compact .kader{flex-basis:200px}
+.notehist{max-height:150px;overflow-y:auto;display:flex;flex-direction:column;gap:6px}.noteitem{background:#f2f4ea;border:1px solid var(--line);border-radius:8px;padding:6px 9px;font-size:12.5px;color:var(--ink);font-weight:400}.noteitem .nt{font-size:10.5px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.3px;display:block;margin-bottom:2px}.notehist:empty::after{content:'Nog geen notities';color:var(--muted);font-size:12px;font-weight:400}
+
+.card.today{box-shadow:0 0 0 2px #2f8f5b,0 2px 7px rgba(0,0,0,.3)}.card.flag{box-shadow:0 0 0 2px #c0392b,0 2px 7px rgba(0,0,0,.3)}.when.vandaag{background:#2f8f5b;color:#fff;border-color:#2f8f5b;font-size:14px}.when.morgen{background:#e6f2ea;color:#1e6b3f;border-color:#9fceb0;font-size:13.5px}.when.gemist{background:#fbe2df;color:#b0392b;border-color:#e0a89f}.card .actie{margin-top:7px;font-size:12.5px;font-weight:700;color:#2f6a8a;background:#e6eef4;border:1px solid #b8cfe0;border-radius:8px;padding:3px 9px;display:inline-block}.card .actie.over{color:#b0392b;background:#fbe2df;border-color:#e0a89f}.tag.noshow{background:#fbeed8;border-color:#e0be80;color:#8a5a1a;font-weight:700}.notecount{margin-top:5px;font-size:11px;color:var(--muted);font-weight:600}
+
+.cmodal{position:fixed;inset:3vh 3vw;background:var(--paper);border:1px solid var(--line);border-radius:16px;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.35);overflow:hidden}.chead2{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line);background:var(--card)}.chead2 h2{margin:0;font-family:var(--disp);text-transform:uppercase;font-size:18px}.cbody{padding:16px 20px 30px;overflow-y:auto}.cbody h3{font-family:var(--disp);text-transform:uppercase;font-size:13px;letter-spacing:.05em;color:var(--olive,#3d6400);margin:22px 0 8px}.cgridtop{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.cstat{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px}.cstat .cn{font-family:var(--disp);font-weight:800;font-size:26px;line-height:1}.cstat .cl{font-size:11.5px;color:var(--muted);margin-top:3px}.cstat.good .cn{color:#2f8f5b}.cstat.bad .cn{color:#c0392b}.cstat.warn .cn{color:#a86a1a}.ctable{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px 14px;overflow-x:auto}.ctable table{width:100%;border-collapse:collapse;font-size:13.5px}.ctable th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);padding:8px 6px;border-bottom:1px solid var(--line)}.ctable td{padding:7px 6px;border-bottom:1px solid var(--line)}.ctable tr:last-child td{border-bottom:none}.ctable .rr{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}.ctwo{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:720px){.ctwo{grid-template-columns:1fr}}.cbar{height:8px;border-radius:5px;background:#e2e6d6;overflow:hidden}.cbar i{display:block;height:100%}.cdot{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:middle}.cnote{font-size:12px;color:var(--muted);margin:8px 0 0}
 </style>
 
 <!-- LOGIN -->
@@ -203,6 +208,7 @@ select,.vtype{background:#ffffff;color:var(--txt);border:1px solid var(--line);b
     <button class="btn oo" id="planoo">+ O&amp;O sessie</button>
     <button class="btn" id="add">+ Kandidaat</button>
     <button class="btn ghost" id="manage">⚙ Klanten</button>
+    <button class="btn ghost" id="cijfersbtn">📊 Cijfers</button>
     <button class="btn ghost" id="exportbtn">↓ Export</button>
     <button class="btn ghost" id="importbtn" style="display:none">↑ Import</button>
     <button class="btn ghost" id="adminbtn" style="display:none">👤 Gebruikers</button>
@@ -235,12 +241,13 @@ select,.vtype{background:#ffffff;color:var(--txt);border:1px solid var(--line);b
     <label class="fl">Recruiter<input id="f_rec" placeholder="Naam recruiter"></label>
     <label class="fl">Vervangt (koppel aan gestopte)<select id="f_verv"></select></label>
     <label class="fl">Reden afwijzing/stop<input id="f_reden" placeholder="Optioneel"></label>
-    <label class="fl">Notities<textarea id="f_note" placeholder="Vrij notitieveld"></textarea></label>
+    <label class="fl">Volgende actie<input id="f_actie" placeholder="bijv. bellen, referentie navragen"></label><label class="fl">Actie op (herinnering)<input id="f_actiedatum" type="date"></label><div class="fl"><span>Notitie-historie</span><div id="f_notehist" class="notehist"></div></div><label class="fl">Nieuwe notitie<textarea id="f_note" placeholder="Typ een notitie — wordt met datum bewaard"></textarea></label>
     <div id="f_updinfo" class="updinfo"></div>
   </div>
   <div class="pfoot">
     <button class="btn ghost" id="f_del" style="display:none;color:var(--red);border-color:#4a2a26">Verwijderen</button>
-    <button class="btn ghost" id="f_cancel">Annuleren</button>
+    <button class="btn ghost" id="f_noshow" style="color:var(--amber);border-color:#4a3524">⊘ No-show</button>
+     <button class="btn ghost" id="f_cancel">Annuleren</button>
     <button class="btn" id="f_save">Opslaan</button>
   </div>
 </div></div>
@@ -405,6 +412,7 @@ function rowToCand(r) {
     start: r.start||'', since: r.since||todayISO(), bron: r.bron||'',
     geplaatstOp: r.geplaatst_op||'', gestoptOp: r.gestopt_op||'',
     garantieMnd: r.garantie_mnd||0, maandloon: r.maandloon||null, toeslagPct: r.toeslag_pct||null, reden: r.reden||'',
+    volgendeActie: r.volgende_actie||'', actieDatum: r.actie_datum||'', noShows: r.no_shows||0, notities: Array.isArray(r.notities)?r.notities:[], historie: Array.isArray(r.historie)?r.historie:[],
     ooId: r.oo_id||null, vervangt: r.vervangt||'',
     rec: r.rec||'', note: r.note||'',
     _updatedBy: r.updated_by, _updatedAt: r.updated_at
@@ -417,6 +425,7 @@ function candToRow(c) {
     start: c.start||'', since: c.since||todayISO(), bron: c.bron||'',
     geplaatst_op: c.geplaatstOp||'', gestopt_op: c.gestoptOp||'',
     garantie_mnd: c.garantieMnd||0, maandloon: c.maandloon||null, toeslag_pct: c.toeslagPct||null, reden: c.reden||'',
+    volgende_actie: c.volgendeActie||null, actie_datum: c.actieDatum||null, no_shows: c.noShows||0, notities: c.notities||[], historie: c.historie||[],
     oo_id: c.ooId||null, vervangt: c.vervangt||'',
     rec: c.rec||'', note: c.note||''
   };
@@ -731,23 +740,23 @@ function renderGroupedByClient(body,arr){
 
 function cardEl(c){
   const el=document.createElement('div');el.className='card'+(isStale(c)?' stale':'');el.draggable=true;el.style.setProperty('--type',TYPEC[c.type]||TYPEC['']);
-  const placed=PLACED.includes(c.fase);const dd=placed?c.start:c.datum;const soon=dd&&daysTo(dd)>=0&&daysTo(dd)<=7;const loc=locOf(c.klant);
+  const placed=PLACED.includes(c.fase);const dd=placed?c.start:c.datum;const soon=dd&&daysTo(dd)>=0&&daysTo(dd)<=7;const loc=locOf(c.klant);const _td=todayISO();const isVandaag=dd&&!placed&&daysTo(dd)===0;const isMorgen=dd&&!placed&&daysTo(dd)===1;const isGemist=dd&&!placed&&daysTo(dd)<0&&!['Afgevallen','Gestopt'].includes(c.fase);const actieOver=c.volgendeActie&&c.actieDatum&&c.actieDatum<_td;if(isVandaag)el.classList.add('today');if(actieOver||isGemist)el.classList.add('flag');
   let h=`<div class="nm">${esc(c.naam)}</div><div class="sub"><b>${esc(c.klant)}</b> · ${esc(c.functie)}</div><div class="meta">${c.type?`<span class="tag type">${esc(c.type)}</span>`:(PLACED.includes(c.fase)?`<span class="tag typewarn">⚠ type?</span>`:`<span class="tag type">—</span>`)}`;
-  if(c.bron)h+=`<span class="tag bron">${esc(c.bron)}</span>`;
+  if(c.bron)h+=`<span class="tag bron">${esc(c.bron)}</span>`;if(c.noShows>0)h+=`<span class="tag noshow">⊘ ${c.noShows}× no-show</span>`;
   if((c.fase==='Afgevallen'||c.fase==='Gestopt')&&c.reden)h+=`<span class="tag reden">${esc(c.reden)}</span>`;
   if(loc)h+=`<span class="tag loc">📍 ${esc(loc)}</span>`;
   {const _dif=daysAgo(c.since);if(!DONE.includes(c.fase)&&_dif>=4)h+=`<span class="tag ${c.fase==='In de wacht'?'bron':(isStale(c)?'stale':'age')}">⏳ ${_dif} dgn</span>`;}
   if(c.vervangt&&state.cands.some(x=>x.id===c.vervangt))h+=`<span class="tag rep">↻ vervanger</span>`;
   if(PLACED.includes(c.fase)&&c.garantieMnd>0){const ge=garantieEnd(c);if(ge&&ge>=todayISO())h+=`<span class="tag gar">🛡 garantie t/m ${fmtFull(ge)}</span>`}
   h+=`</div>`;
-  if(dd){const lbl=placed?((c.fase==='Gestart'&&dd<=todayISO())?'▶ gestart':'▶ start'):'📅';const tt=(!placed&&c.tijd)?(' · '+c.tijd):'';const cls='when'+(placed?' start':(soon?' soon':''))+(c.fase==='Contract getekend'?' bigstart':'');h+=`<div class="${cls}">${lbl} ${fmtFull(dd)}${tt}</div>`}
+  if(dd){const lbl=placed?((c.fase==='Gestart'&&dd<=todayISO())?'▶ gestart':'▶ start'):'📅';const tt=(!placed&&c.tijd)?(' · '+c.tijd):'';let cls,lbl2;if(isVandaag){cls='when vandaag';lbl2='📅 VANDAAG';}else if(isMorgen){cls='when morgen';lbl2='📅 MORGEN';}else if(isGemist){cls='when gemist';lbl2='⚠ GEMIST';}else{cls='when'+(placed?' start':(soon?' soon':''))+(c.fase==='Contract getekend'?' bigstart':'');lbl2=lbl;}h+=`<div class="${cls}">${lbl2} ${fmtFull(dd)}${tt}</div>`}
   if(EXPECTSTART.includes(c.fase)&&c.start)h+=`<div class="when verw">🎯 verw. start ${fmtFull(c.start)}</div>`;
   if(c.fase==='Gestopt'&&c.gestoptOp)h+=`<div class="when stop">🛑 gestopt ${fmtFull(c.gestoptOp)}</div>`;
   if(c.fase==='Gestopt'){const r=repOf(c);if(r&&PLACED.includes(r.fase))h+=`<div class="ribbon ok">✓ Vervangen door ${esc(r.naam)}</div>`;else if(r)h+=`<div class="ribbon mid">Vervanger: ${esc(r.naam)} · ${r.fase}</div>`;else if(owesReplacement(c))h+=`<div class="ribbon">Vervanging nodig <button class="vbtn" data-rep="${c.id}">+ Vervanger</button></div>`;else if(c.vervangt)h+=`<div class="ribbon none">Inruiler gestopt · geen target-effect</div>`;else h+=`<div class="ribbon none">Buiten garantie · geen vervanging</div>`}
   if(c.fase==='Afgevallen')h+=`<div class="ribbon none">Recyclebaar <button class="rbtn" data-react="${c.id}">↺ Heractiveren</button></div>`;
   // ── MOBIELE VERPLAATS-KNOP ──
   h+=`<button class="movebtn" data-id="${c.id}">⇆ Verplaatsen naar andere fase</button>`;
-  el.innerHTML=h;
+  if(c.volgendeActie&&!DONE.includes(c.fase)){h+=`<div class="actie${actieOver?' over':''}">→ ${esc(c.volgendeActie)}${c.actieDatum?' · '+fmtFull(c.actieDatum):''}</div>`}if(c.notities&&c.notities.length)h+=`<div class="notecount">📝 ${c.notities.length} notitie${c.notities.length===1?'':'s'}</div>`;el.innerHTML=h;
   el.addEventListener('dragstart',e=>{e.dataTransfer.setData('id',c.id);el.classList.add('drag')});
   el.addEventListener('dragend',()=>el.classList.remove('drag'));
   el.addEventListener('click',()=>openEdit(c.id));
@@ -756,7 +765,7 @@ function cardEl(c){
 
 function move(id,fase){
   const c=state.cands.find(x=>x.id===id);if(!c||c.fase===fase)return;
-  c.fase=fase;c.since=todayISO();
+  if(!Array.isArray(c.historie))c.historie=[];c.historie.push({fase,op:todayISO()});c.fase=fase;c.since=todayISO();
   if(PLACED.includes(fase)&&!c.geplaatstOp)c.geplaatstOp=todayISO();
   if(fase==='Gestopt')c.gestoptOp=todayISO();
   if(fase!=='O&O sessie')c.ooId=null;
@@ -795,7 +804,7 @@ function openEdit(id,prefill){
   $('#f_bron').innerHTML=BRONNEN.map(b=>`<option value="${b}">${b||'—'}</option>`).join('');
   $('#f_verv').innerHTML='<option value="">—</option>'+state.cands.filter(x=>x.fase==='Gestopt'&&x.id!==id).map(x=>`<option value="${x.id}">${esc(x.naam)} (${esc(x.klant)})</option>`).join('');
   $('#f_naam').value=c?c.naam:'';$('#f_fase').value=c?c.fase:'Voorselectie';$('#f_bron').value=c?c.bron:'';
-  $('#f_datum').value=c?c.datum:'';$('#f_tijd').value=c?(c.tijd||''):'';$('#f_start').value=c?c.start:'';$('#f_plaats').value=c?(c.geplaatstOp||''):'';$('#f_stop').value=c?(c.gestoptOp||''):'';$('#f_garantie').value=c?String(c.garantieMnd||0):'0';$('#f_loon').value=c?(c.maandloon||''):'';$('#f_toeslag').value=c?(c.toeslagPct||''):'';$('#f_rec').value=c?c.rec:'';$('#f_note').value=c?c.note:'';$('#f_verv').value=c?(c.vervangt||''):(prefill.vervangt||'');$('#f_reden').value=c?(c.reden||''):'';
+  $('#f_datum').value=c?c.datum:'';$('#f_tijd').value=c?(c.tijd||''):'';$('#f_start').value=c?c.start:'';$('#f_plaats').value=c?(c.geplaatstOp||''):'';$('#f_stop').value=c?(c.gestoptOp||''):'';$('#f_garantie').value=c?String(c.garantieMnd||0):'0';$('#f_loon').value=c?(c.maandloon||''):'';$('#f_toeslag').value=c?(c.toeslagPct||''):'';$('#f_rec').value=c?c.rec:'';$('#f_note').value='';$('#f_actie').value=c?(c.volgendeActie||''):'';$('#f_actiedatum').value=c?(c.actieDatum||''):'';{const _nh=$('#f_notehist');const _list=(c&&Array.isArray(c.notities))?c.notities.slice():[];if(c&&c.note&&!_list.some(n=>n.tekst===c.note))_list.unshift({t:c.since||'',tekst:c.note,legacy:true});_nh.innerHTML=_list.slice().reverse().map(n=>`<div class="noteitem"><span class="nt">${n.t?fmtFull(n.t):'eerder'}${n.door?' · '+esc(n.door):''}</span>${esc(n.tekst)}</div>`).join('');}$('#f_verv').value=c?(c.vervangt||''):(prefill.vervangt||'');$('#f_reden').value=c?(c.reden||''):'';
   // "Laatst gewijzigd door" info
   const updEl = $('#f_updinfo');
   if(c&&c._updatedAt) {
@@ -819,7 +828,7 @@ $('#f_save').onclick=()=>{
   if(vsel==='-1'&&cur){klant=cur.klant;functie=cur.functie;type=cur.type}else{const v=state.vacs[+vsel];klant=v[0];functie=v[1];type=v[2]}
   const nf=$('#f_fase').value;
   const pv=$('#f_plaats').value,sv=$('#f_stop').value;
-  const data={naam,klant,functie,type,fase:nf,datum:$('#f_datum').value,tijd:$('#f_tijd').value,start:$('#f_start').value,bron:$('#f_bron').value,garantieMnd:+$('#f_garantie').value||0,maandloon:$('#f_loon').value?+$('#f_loon').value:null,toeslagPct:$('#f_toeslag').value?+$('#f_toeslag').value:null,reden:$('#f_reden').value,rec:$('#f_rec').value,note:$('#f_note').value,vervangt:$('#f_verv').value};
+  const data={naam,klant,functie,type,fase:nf,datum:$('#f_datum').value,tijd:$('#f_tijd').value,start:$('#f_start').value,bron:$('#f_bron').value,garantieMnd:+$('#f_garantie').value||0,maandloon:$('#f_loon').value?+$('#f_loon').value:null,toeslagPct:$('#f_toeslag').value?+$('#f_toeslag').value:null,reden:$('#f_reden').value,rec:$('#f_rec').value,vervangt:$('#f_verv').value,volgendeActie:$('#f_actie').value.trim(),actieDatum:$('#f_actiedatum').value||null,noShows:(cur&&cur.noShows)||0,historie:(cur&&Array.isArray(cur.historie))?cur.historie:[],notities:(function(){const arr=(cur&&Array.isArray(cur.notities))?cur.notities.slice():[];const nn=$('#f_note').value.trim();if(nn)arr.push({t:todayISO(),tekst:nn,door:(currentUser&&currentUser.email||'').split('@')[0]});return arr})(),note:''};
   let efase=nf;if(PLACED.includes(nf)&&data.start){efase=data.start<=todayISO()?'Gestart':'Contract getekend';data.fase=efase}
   let savedCand;
   if(editing){
@@ -835,7 +844,7 @@ $('#f_save').onclick=()=>{
   _upsertCand(savedCand);render();$('#scrim').classList.remove('open');editing=null;toast('Opgeslagen');
 };
 $('#f_del').onclick=()=>{if(editing&&confirm('Kandidaat verwijderen?')){_deleteCandDB(editing);state.cands=state.cands.filter(x=>x.id!==editing);render();$('#scrim').classList.remove('open');editing=null;toast('Verwijderd')}};
-$('#f_cancel').onclick=()=>{$('#scrim').classList.remove('open');editing=null};
+$('#f_noshow').onclick=()=>{if(!editing)return;const c=state.cands.find(x=>x.id===editing);if(!c)return;if(!confirm(c.naam+' als no-show markeren? De afspraak wordt gewist en geteld.'))return;c.noShows=(c.noShows||0)+1;if(!Array.isArray(c.notities))c.notities=[];c.notities.push({t:todayISO(),tekst:'No-show'+(c.datum?' (afspraak '+c.datum+')':''),door:(currentUser&&currentUser.email||'').split('@')[0]});c.datum='';c.tijd='';_upsertCand(c);$('#scrim').classList.remove('open');render();toast(c.naam+' → no-show geregistreerd')};$('#f_cancel').onclick=()=>{$('#scrim').classList.remove('open');editing=null};
 $('#scrim').onclick=e=>{if(e.target===$('#scrim')){$('#scrim').classList.remove('open');editing=null}};
 $('#add').onclick=()=>openEdit(null);
 
@@ -967,5 +976,90 @@ async function openAdmin(){
   });
 }
 
+// ─── CIJFERS / ANALYTICS ───────────────────────────────────────
+function pctS(a,b){return b>0?Math.round(a/b*100)+'%':'—'}
+function openCijfers(){
+  let sc=document.getElementById('cijferscrim');
+  if(!sc){sc=document.createElement('div');sc.className='scrim';sc.id='cijferscrim';document.body.appendChild(sc);
+    sc.addEventListener('mousedown',e=>{if(e.target===sc)sc.classList.remove('open')});}
+  const cs=state.cands;
+  const isPlaced=c=>!!c.geplaatstOp||PLACED.includes(c.fase);
+  const isAfg=c=>c.fase==='Afgevallen'&&!c.geplaatstOp;
+  const isGestopt=c=>c.fase==='Gestopt';
+  const geplaatst=cs.filter(isPlaced).length;
+  const afgevallen=cs.filter(isAfg).length;
+  const gestopt=cs.filter(c=>c.fase==='Gestopt').length;
+  const lopend=cs.filter(c=>!DONE.includes(c.fase)).length;
+  const totaal=cs.length;
+  // aanname-ratio per klant (aangenomen = ooit geplaatst; afgewezen = afgevallen zonder plaatsing)
+  const per={};
+  cs.forEach(c=>{const k=c.klant||'—';(per[k]=per[k]||{aan:0,afg:0,lop:0,stop:0})
+    ;if(isPlaced(c))per[k].aan++;else if(isAfg(c))per[k].afg++;else per[k].lop++;if(c.fase==='Gestopt')per[k].stop++;});
+  const klantRows=Object.entries(per).map(([k,v])=>({k,...v,afgerond:v.aan+v.afg,ratio:v.aan+v.afg>0?v.aan/(v.aan+v.afg):null}))
+    .sort((a,b)=>(b.aan+b.afg+b.lop)-(a.aan+a.afg+a.lop));
+  // redenen
+  const redAfg={},redStop={};
+  cs.forEach(c=>{const r=(c.reden||'').trim()||'(geen reden ingevuld)';if(isAfg(c))redAfg[r]=(redAfg[r]||0)+1;if(c.fase==='Gestopt')redStop[r]=(redStop[r]||0)+1;});
+  const topRed=o=>Object.entries(o).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  // doorstroom-trechter (PHASES-index; historie + aanname vullen het pad)
+  const pIdx=f=>PHASES.findIndex(p=>p.k===f);
+  const term=['Afgevallen','Gestopt'];
+  const furthest=c=>{if(isPlaced(c))return pIdx('Contract getekend');
+    let mx=term.includes(c.fase)?-1:pIdx(c.fase);
+    (c.historie||[]).forEach(h=>{if(!term.includes(h.fase)){const i=pIdx(h.fase);if(i>mx)mx=i}});
+    if(mx<0)mx=pIdx('Voorselectie');return mx;};
+  const F=['Voorgesteld','O&O sessie','Eerste gesprek','Tweede gesprek','Meeloopdag','Contract getekend'];
+  const fr=cs.map(furthest);
+  const reach=s=>fr.filter(x=>x>=pIdx(s)).length;
+  const funnel=F.map((s,i)=>({s,n:reach(s),conv:i>0?pctS(reach(s),reach(F[i-1])):null}));
+  // huidige verdeling over actieve fases
+  const actief=PHASES.filter(p=>!term.includes(p.k)&&!PLACED.includes(p.k)).map(p=>({k:p.k,c:p.c,n:cs.filter(x=>x.fase===p.k).length})).filter(x=>x.n>0);
+  // beschikbare pool: afgevallen/gestopt kandidaten (om te hergebruiken)
+  const pool=cs.filter(c=>c.fase==='Afgevallen'||c.fase==='Gestopt').sort((a,b)=>(b.gestoptOp||b.since||'').localeCompare(a.gestoptOp||a.since||''));
+
+  const bar=(n,max,col)=>`<div class="cbar"><i style="width:${max>0?Math.round(n/max*100):0}%;background:${col}"></i></div>`;
+  const maxFunnel=funnel[0]?funnel[0].n:1;
+  sc.innerHTML=`<div class="cmodal"><div class="chead2"><h2>📊 Cijfers &amp; doorstroom</h2><button class="btn ghost" onclick="document.getElementById('cijferscrim').classList.remove('open')">Sluiten</button></div>
+   <div class="cbody">
+    <div class="cgridtop">
+      <div class="cstat"><div class="cn">${totaal}</div><div class="cl">kandidaten totaal</div></div>
+      <div class="cstat good"><div class="cn">${geplaatst}</div><div class="cl">aangenomen · ${pctS(geplaatst,geplaatst+afgevallen)} aannameratio</div></div>
+      <div class="cstat bad"><div class="cn">${afgevallen}</div><div class="cl">afgevallen (niet aangenomen)</div></div>
+      <div class="cstat warn"><div class="cn">${gestopt}</div><div class="cl">gestopt na plaatsing</div></div>
+      <div class="cstat"><div class="cn">${lopend}</div><div class="cl">nog in procedure</div></div>
+    </div>
+
+    <h3>🎯 Doorstroom-trechter</h3>
+    <div class="ctable"><table>
+     <tr><th>Fase</th><th class="rr">Bereikt</th><th class="rr">Doorstroom</th><th style="width:34%"></th></tr>
+     ${funnel.map(f=>`<tr><td>${f.s}</td><td class="rr"><b>${f.n}</b></td><td class="rr">${f.conv||'—'}</td><td>${bar(f.n,maxFunnel,'#5b8bbf')}</td></tr>`).join('')}
+    </table></div>
+    <p class="cnote">"Doorstroom" = % dat van de vorige fase deze fase haalt. Wie <b>niet door het eerste/tweede gesprek</b> komt zie je aan de daling daar. De trechter wordt nauwkeuriger naarmate er meer fase-historie is opgebouwd (vanaf nu gelogd).</p>
+
+    <div class="ctwo">
+     <div><h3>🏢 Aanname-ratio per klant</h3>
+      <div class="ctable"><table><tr><th>Klant</th><th class="rr">Aangenomen</th><th class="rr">Afgevallen</th><th class="rr">Ratio</th><th class="rr">Lopend</th></tr>
+      ${klantRows.map(r=>`<tr><td>${esc(r.k)}</td><td class="rr">${r.aan}</td><td class="rr">${r.afg}</td><td class="rr"><b>${r.ratio!=null?Math.round(r.ratio*100)+'%':'—'}</b></td><td class="rr">${r.lop||'—'}</td></tr>`).join('')}
+      </table></div></div>
+     <div><h3>📍 Huidige verdeling (fase)</h3>
+      <div class="ctable"><table>${actief.map(a=>`<tr><td><span class="cdot" style="background:${a.c}"></span>${a.k}</td><td class="rr"><b>${a.n}</b></td></tr>`).join('')}</table></div></div>
+    </div>
+
+    <div class="ctwo">
+     <div><h3>❌ Redenen afgevallen</h3><div class="ctable"><table>${topRed(redAfg).map(([r,n])=>`<tr><td>${esc(r)}</td><td class="rr"><b>${n}</b></td></tr>`).join('')||'<tr><td class="cnote">nog geen</td></tr>'}</table></div></div>
+     <div><h3>🛑 Redenen gestopt</h3><div class="ctable"><table>${topRed(redStop).map(([r,n])=>`<tr><td>${esc(r)}</td><td class="rr"><b>${n}</b></td></tr>`).join('')||'<tr><td class="cnote">nog geen</td></tr>'}</table></div></div>
+    </div>
+
+    <h3>♻️ Beschikbare pool — afvallers &amp; stoppers om te hergebruiken (${pool.length})</h3>
+    <div class="ctable"><table><tr><th>Kandidaat</th><th>Was bij</th><th>Functie</th><th>Reden</th><th></th></tr>
+     ${pool.slice(0,30).map(c=>`<tr><td><b>${esc(c.naam)}</b></td><td>${esc(c.klant||'')}</td><td>${esc(c.functie||'')}</td><td class="cnote">${esc(c.reden||'—')}</td><td class="rr"><button class="rbtn" data-react="${c.id}">↻ heraanbieden</button></td></tr>`).join('')||'<tr><td class="cnote">nog niemand</td></tr>'}
+    </table></div>
+    <p class="cnote">Sterke kandidaten die net niet pasten bij klant A zijn goud voor klant B. Klik "heraanbieden" om ze opnieuw in de pijplijn te zetten.</p>
+   </div></div>`;
+  sc.classList.add('open');
+  sc.querySelectorAll('[data-react]').forEach(b=>b.onclick=()=>{sc.classList.remove('open');if(window.openReactivate)openReactivate(b.dataset.react);else openEdit(b.dataset.react);});
+}
+
+document.getElementById('cijfersbtn')&&(document.getElementById('cijfersbtn').onclick=openCijfers);
 let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),1900)}
 </script>

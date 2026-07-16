@@ -143,6 +143,9 @@ textarea{resize:vertical;min-height:70px}
 .urole{border:1px solid var(--line);border-radius:5px;padding:2px 6px;font-size:12px}
 .invite-box{background:#141a0b;border:1px solid var(--line);border-radius:10px;padding:14px;font-size:13px;line-height:1.6}
 .invite-box a{color:var(--steel2)}
+.tag.age{background:rgba(255,129,88,.13);border-color:#4a3524;color:#fbc258}
+.vage{font-size:10.5px;color:var(--muted);margin-left:6px;white-space:nowrap}
+select,.vtype{background:#1b2211;color:var(--txt);border:1px solid var(--line);border-radius:6px}
 </style>
 
 <!-- LOGIN -->
@@ -437,7 +440,7 @@ async function loadFromDB() {
   }
   state.cands   = (cR.data||[]).map(rowToCand);
   state.clients = (clR.data||[]).map(c => ({naam:c.naam, contact:c.contact||'', locatie:c.locatie||''}));
-  state.vacs    = (vR.data||[]).map(v => [v.klant, v.functie, v.type||'']);
+  state.vacs    = (vR.data||[]).map(v => [v.klant, v.functie, v.type||'', v.aangemaakt||null]);
   state.sessions= (sR.data||[]).map(s => ({id:s.id, klant:s.klant, functie:s.functie, datum:s.datum, locatie:s.locatie||''}));
   state.targets = {};
   (tR.data||[]).forEach(t => {
@@ -498,7 +501,7 @@ async function _saveAllState() {
       await sb.from('candidates').insert(rows);
     }
     if (state.clients.length) await sb.from('clients').insert(state.clients);
-    if (state.vacs.length) await sb.from('vacatures').insert(state.vacs.map(v => ({klant:v[0],functie:v[1],type:v[2]||''})));
+    if (state.vacs.length) await sb.from('vacatures').insert(state.vacs.map(v => ({klant:v[0],functie:v[1],type:v[2]||'',aangemaakt:v[3]||null})));
     if (state.sessions.length) await sb.from('oo_sessions').insert(state.sessions);
     const trows = Object.entries(state.targets||{}).map(([m,n]) => ({maand:m,aantal:n}));
     trows.push({maand:'__default', aantal: state.target?.maand||10});
@@ -728,7 +731,7 @@ function cardEl(c){
   if(c.bron)h+=`<span class="tag bron">${esc(c.bron)}</span>`;
   if((c.fase==='Afgevallen'||c.fase==='Gestopt')&&c.reden)h+=`<span class="tag reden">${esc(c.reden)}</span>`;
   if(loc)h+=`<span class="tag loc">📍 ${esc(loc)}</span>`;
-  if(isStale(c))h+=`<span class="tag stale">⏳ ${daysAgo(c.since)} dgn</span>`;
+  {const _dif=daysAgo(c.since);if(!DONE.includes(c.fase)&&_dif>=4)h+=`<span class="tag ${isStale(c)?'stale':'age'}">⏳ ${_dif} dgn</span>`;}
   if(c.vervangt&&state.cands.some(x=>x.id===c.vervangt))h+=`<span class="tag rep">↻ vervanger</span>`;
   if(PLACED.includes(c.fase)&&c.garantieMnd>0){const ge=garantieEnd(c);if(ge&&ge>=todayISO())h+=`<span class="tag gar">🛡 garantie t/m ${fmtFull(ge)}</span>`}
   h+=`</div>`;
@@ -752,7 +755,7 @@ function move(id,fase){
   if(PLACED.includes(fase)&&!c.geplaatstOp)c.geplaatstOp=todayISO();
   if(fase==='Gestopt')c.gestoptOp=todayISO();
   if(fase!=='O&O sessie')c.ooId=null;
-  _upsertCand(c);render();toast(c.naam+' → '+fase);
+  _upsertCand(c);render();if(['Contract ondertekenen','Contract getekend','Gestart'].includes(fase)&&(!c.maandloon||!c.start)){openEdit(id);toast('Vul maandloon + startdatum in — nodig voor de fee-berekening')}else if(['Afgevallen','Gestopt'].includes(fase)&&!(c.reden||'').trim()){openEdit(id);toast('Vul de reden in — belangrijk voor uitval-inzicht')}else toast(c.naam+' → '+fase);
 }
 
 // ─── MOBILE PHASE PICKER ────────────────────────────────────────
@@ -802,6 +805,11 @@ function openEdit(id,prefill){
 
 $('#f_save').onclick=()=>{
   const naam=$('#f_naam').value.trim();if(!naam){$('#f_naam').focus();return}
+  const _fase=$('#f_fase').value;
+  if(!$('#f_bron').value.trim()){toast('Vul de bron in (Meta/Indeed/referral…) — nodig voor kanaal-inzicht');$('#f_bron').focus();return}
+  if(['Contract ondertekenen','Contract getekend','Gestart'].includes(_fase)&&!$('#f_loon').value){toast('Vul het bruto maandloon in — nodig voor de automatische fee');$('#f_loon').focus();return}
+  if(['Contract getekend','Gestart'].includes(_fase)&&!$('#f_start').value){toast('Vul de startdatum in — bepaalt de eerste factuurdatum');$('#f_start').focus();return}
+  if(['Afgevallen','Gestopt'].includes(_fase)&&!$('#f_reden').value.trim()){toast('Vul de reden in — belangrijk voor uitval-inzicht');$('#f_reden').focus();return}
   const vsel=$('#f_vac').value,cur=editing?state.cands.find(x=>x.id===editing):null;let klant,functie,type;
   if(vsel==='-1'&&cur){klant=cur.klant;functie=cur.functie;type=cur.type}else{const v=state.vacs[+vsel];klant=v[0];functie=v[1];type=v[2]}
   const nf=$('#f_fase').value;
@@ -829,7 +837,7 @@ $('#add').onclick=()=>openEdit(null);
 function refreshKlantSel(sel){const ks=clients();$('#m_klant').innerHTML=ks.length?ks.map(k=>`<option${k===sel?' selected':''}>${esc(k)}</option>`).join(''):'<option value="">— voeg eerst klant toe —</option>'}
 function openManage(){refreshKlantSel();$('#m_kname').value='';$('#m_kloc').value='';$('#m_kcontact').value='';$('#m_func').value='';$('#m_type').value='';renderVlist();$('#mscrim').classList.add('open')}
 function renderVlist(){
-  let h='';state.clients.forEach(cl=>{const k=cl.naam;h+=`<div class="kgrp">${esc(k)}${cl.locatie?' · '+esc(cl.locatie):''}<button class="x" data-delk="${esc(k)}" style="float:right">✕</button></div>`;let any=false;state.vacs.forEach((v,i)=>{if(v[0]!==k)return;any=true;h+=`<div class="vrow"><span class="vf">${esc(v[1])}</span><select data-i="${i}" class="vtype"><option value=""${v[2]===''?' selected':''}>—</option><option${v[2]==='Detachering'?' selected':''}>Detachering</option><option value="W&S"${v[2]==='W&S'?' selected':''}>W&amp;S</option></select><button class="x" data-del="${i}">✕</button></div>`});if(!any)h+=`<div class="vrow" style="color:var(--muted);font-size:12px">nog geen vacatures</div>`});
+  let h='';state.clients.forEach(cl=>{const k=cl.naam;h+=`<div class="kgrp">${esc(k)}${cl.locatie?' · '+esc(cl.locatie):''}<button class="x" data-delk="${esc(k)}" style="float:right">✕</button></div>`;let any=false;state.vacs.forEach((v,i)=>{if(v[0]!==k)return;any=true;h+=`<div class="vrow"><span class="vf">${esc(v[1])}${v[3]?`<span class="vage">· ${daysAgo(v[3])}d open</span>`:``}</span><select data-i="${i}" class="vtype"><option value=""${v[2]===''?' selected':''}>—</option><option${v[2]==='Detachering'?' selected':''}>Detachering</option><option value="W&S"${v[2]==='W&S'?' selected':''}>W&amp;S</option></select><button class="x" data-del="${i}">✕</button></div>`});if(!any)h+=`<div class="vrow" style="color:var(--muted);font-size:12px">nog geen vacatures</div>`});
   const vl=$('#vlist');vl.innerHTML=h||'<p style="color:var(--muted);font-size:13px">Nog geen klanten.</p>';
   vl.querySelectorAll('.vtype').forEach(s=>s.onchange=e=>{const vac=state.vacs[+e.target.dataset.i];vac[2]=e.target.value;_upsertVac(vac);render();toast('Type bijgewerkt')});
   vl.querySelectorAll('[data-del]').forEach(b=>b.onclick=e=>{e.stopPropagation();const i=+e.target.dataset.del,v=state.vacs[i];const u=state.cands.filter(c=>c.klant===v[0]&&c.functie===v[1]).length;if(confirm(`Vacature "${v[0]} – ${v[1]}" verwijderen?`+(u?`\n${u} kandidaat(en) blijven op het bord.`:''))){_deleteVacDB(v[0],v[1]);state.vacs.splice(i,1);renderVlist();render();refreshKlantSel();refreshFilters();toast('Verwijderd')}});

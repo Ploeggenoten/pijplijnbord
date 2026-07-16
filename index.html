@@ -147,6 +147,7 @@ textarea{resize:vertical;min-height:70px}
 .vage{font-size:10.5px;color:var(--muted);margin-left:6px;white-space:nowrap}
 select,.vtype{background:#1b2211;color:var(--txt);border:1px solid var(--line);border-radius:6px}
 #dash{display:flex;flex-wrap:wrap;gap:12px;flex:1 1 100%;width:100%}
+.board.compact .card{padding:6px 8px;border-left-width:5px;border-radius:8px}.board.compact .card .nm{font-size:13px}.board.compact .card .sub{font-size:11px;margin-top:1px}.board.compact .card .when{font-size:12px;padding:2px 7px;margin-top:5px}.board.compact .card .meta{margin-top:4px;gap:4px}.board.compact .card .tag{font-size:10px;padding:1px 6px}.board.compact .card .kw{font-size:11px;margin-top:3px}.board.compact .colm,.board.compact .kader{flex-basis:200px}
 </style>
 
 <!-- LOGIN -->
@@ -196,6 +197,7 @@ select,.vtype{background:#1b2211;color:var(--txt);border:1px solid var(--line);b
     <select class="field" id="filter"><option value="*">Alle klanten</option></select>
     <select class="field" id="ffilter"><option value="*">Alle functies</option></select>
     <button class="btn ghost on" id="grouptoggle">Groepeer op klant</button>
+    <button class="btn ghost" id="densitytoggle" title="Compacte weergave">⊟ Compact</button>
     <button class="btn oo" id="planoo">+ O&amp;O sessie</button>
     <button class="btn" id="add">+ Kandidaat</button>
     <button class="btn ghost" id="manage">⚙ Klanten</button>
@@ -937,7 +939,7 @@ $('#importfile').onchange=e=>{
 };
 
 function syncGroupBtn(){const b=$('#grouptoggle');if(!b)return;b.textContent=state.groupByClient?'Klantweergave: aan':'Groepeer op klant';b.classList.toggle('on',!!state.groupByClient)}
-$('#grouptoggle').onclick=()=>{state.groupByClient=!state.groupByClient;syncGroupBtn();render()};
+const _bd=$('#board');function _applyDensity(){const c=localStorage.getItem('pg_compact')==='1';_bd.classList.toggle('compact',c);const b=$('#densitytoggle');if(b){b.textContent=c?'⊞ Ruim':'⊟ Compact';b.classList.toggle('on',c)}}_applyDensity();$('#densitytoggle').onclick=()=>{localStorage.setItem('pg_compact',localStorage.getItem('pg_compact')==='1'?'0':'1');_applyDensity()};$('#grouptoggle').onclick=()=>{state.groupByClient=!state.groupByClient;syncGroupBtn();render()};
 
 // ─── ADMIN PANEL ────────────────────────────────────────────────
 $('#adminbtn').onclick=openAdmin;

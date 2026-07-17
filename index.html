@@ -618,11 +618,14 @@ function promoteStart(c){
 function renderDash(){
   if(!selMonth)selMonth=mk();
   const m=selMonth,cur=mk(),isCur=m===cur;
-  const grossM=state.cands.filter(c=>(c.geplaatstOp||'').slice(0,7)===m);
+  // Netto plaatsingen deze maand = deze maand geplaatst ÉN nu nog op Contract getekend/Gestart.
+  // (Wie teruggezet is naar Offer/afgevallen of alweer gestopt, telt niet meer mee.)
+  const grossM=state.cands.filter(c=>(c.geplaatstOp||'').slice(0,7)===m&&PLACED.includes(c.fase));
   const ws=grossM.filter(c=>c.type==='W&S').length,dt=grossM.filter(c=>c.type==='Flex').length,onb=grossM.filter(c=>c.type!=='W&S'&&c.type!=='Flex').length;
   const gross=grossM.length;
+  // stops deze maand (info-indicator, elke plaatsing die deze maand stopte — ook eerder geplaatst)
   const stopM=state.cands.filter(c=>c.fase==='Gestopt'&&(c.gestoptOp||'').slice(0,7)===m&&c.geplaatstOp&&!c.vervangt).length;
-  const tot=gross-stopM,tgt=targetFor(m),left=Math.max(0,tgt-tot),pct=tgt?Math.min(100,Math.round(Math.max(0,tot)/tgt*100)):0,hit=tgt>0&&tot>=tgt;
+  const tot=gross,tgt=targetFor(m),left=Math.max(0,tgt-tot),pct=tgt?Math.min(100,Math.round(Math.max(0,tot)/tgt*100)):0,hit=tgt>0&&tot>=tgt;
   const startM=state.cands.filter(c=>PLACED.includes(c.fase)&&(c.start||'').slice(0,7)===m).length;
   const[wmon,wsun]=weekRange();
   const wk=f=>state.cands.filter(c=>c.fase===f&&c.datum&&c.datum>=wmon&&c.datum<=wsun).length;
@@ -638,7 +641,7 @@ function renderDash(){
      <div><span class="big" style="color:${hit?'var(--green)':'var(--txt)'}">${tot}</span> <span class="sub">/ <input id="tgtinp" type="number" min="0" value="${tgt}"> netto plaatsingen</span></div>
      <div class="bar"><i style="width:${pct}%;background:${hit?'var(--green)':'var(--glove)'}"></i></div>
      <div class="sub" style="margin-top:6px;font-weight:700;color:${hit?'var(--green)':'var(--txt)'}">${hit?'✓ target gehaald':'nog '+left+' te gaan'}</div>
-     <div class="split"><span><span class="dot" style="background:${TYPEC['W&S']}"></span>W&amp;S <b>${ws}</b></span><span><span class="dot" style="background:${TYPEC['Flex']}"></span>Flex <b>${dt}</b></span>${onb?`<span><span class="dot" style="background:#B7AE9E"></span>? <b>${onb}</b></span>`:''}<span><b>${gross}</b> getekend</span>${stopM?`<span style="color:var(--red)">−${stopM} gestopt</span>`:''}</div>
+     <div class="split"><span><span class="dot" style="background:${TYPEC['W&S']}"></span>W&amp;S <b>${ws}</b></span><span><span class="dot" style="background:${TYPEC['Flex']}"></span>Flex <b>${dt}</b></span>${onb?`<span><span class="dot" style="background:#B7AE9E"></span>? <b>${onb}</b></span>`:''}<span><b>${gross}</b> getekend</span>${stopM?`<span style="color:var(--red)" title="plaatsingen die deze maand zijn gestopt (los van de teller)">⚑ ${stopM} gestopt deze mnd</span>`:''}</div>
      <div class="sub" style="margin-top:6px">▶ ${startM} starten deze maand · pijplijn ${proc}</div>
    </div>
    <div class="panelbox week"><h4>📅 Deze week (ma–zo) — maandagbespreking</h4><div class="wgrid">${wcells}</div>
@@ -766,7 +769,8 @@ function cardEl(c){
 function move(id,fase){
   const c=state.cands.find(x=>x.id===id);if(!c||c.fase===fase)return;
   if(!Array.isArray(c.historie))c.historie=[];c.historie.push({fase,op:todayISO()});c.fase=fase;c.since=todayISO();
-  if(PLACED.includes(fase)&&!c.geplaatstOp)c.geplaatstOp=todayISO();
+  if(PLACED.includes(fase)){if(!c.geplaatstOp)c.geplaatstOp=todayISO();}
+  else if(fase!=='Gestopt')c.geplaatstOp='';   // teruggezet vóór 'Contract getekend' → plaatsingsdatum wissen (geen spookplaatsing)
   if(fase==='Gestopt')c.gestoptOp=todayISO();
   if(fase!=='O&O sessie')c.ooId=null;
   _upsertCand(c);render();if(['Contract ondertekenen','Contract getekend','Gestart'].includes(fase)&&(!c.maandloon||!c.start)){openEdit(id);toast('Vul maandloon + startdatum in — nodig voor de fee-berekening')}else if(['Afgevallen','Gestopt'].includes(fase)&&!(c.reden||'').trim()){openEdit(id);toast('Vul de reden in — belangrijk voor uitval-inzicht')}else if(fase==='In de wacht'&&!c.start){openEdit(id);toast('Zet de verwachte startdatum erbij — dan rekent de forecast ermee')}else toast(c.naam+' → '+fase);
@@ -833,12 +837,12 @@ $('#f_save').onclick=()=>{
   let savedCand;
   if(editing){
     if(cur.fase!==efase)cur.since=todayISO();
-    data.geplaatstOp=PLACED.includes(efase)?(pv||cur.geplaatstOp||todayISO()):pv;
+    data.geplaatstOp=PLACED.includes(efase)?(pv||cur.geplaatstOp||todayISO()):(efase==='Gestopt'?(pv||cur.geplaatstOp||''):'');
     data.gestoptOp=efase==='Gestopt'?(sv||cur.gestoptOp||todayISO()):'';
     if(efase!=='O&O sessie')data.ooId=null;else data.ooId=cur.ooId;
     Object.assign(cur,data);savedCand=cur;
   } else {
-    savedCand={id:'c'+Date.now(),since:todayISO(),ooId:null,gestoptOp:efase==='Gestopt'?(sv||todayISO()):'',geplaatstOp:PLACED.includes(efase)?(pv||todayISO()):pv,...data};
+    savedCand={id:'c'+Date.now(),since:todayISO(),ooId:null,gestoptOp:efase==='Gestopt'?(sv||todayISO()):'',geplaatstOp:PLACED.includes(efase)?(pv||todayISO()):(efase==='Gestopt'?(pv||''):''),...data};
     state.cands.push(savedCand);
   }
   _upsertCand(savedCand);render();$('#scrim').classList.remove('open');editing=null;toast('Opgeslagen');

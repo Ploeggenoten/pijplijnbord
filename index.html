@@ -34,6 +34,10 @@ select,input,button,textarea{font-family:var(--body);font-size:13px}
 .wdiv{margin:7px 2px 2px;padding:3px 4px;font-family:var(--disp);font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);border-top:2px solid var(--line)}
 .wdiv.now{color:#1e6b3f;border-top-color:#7bbf95}
 .startnote{background:#e4f1e9;border:1px solid #a8d0b6;border-radius:7px;padding:5px 8px;font-family:var(--disp);font-weight:600;font-size:12px;letter-spacing:.02em;color:#1e6b3f}
+.signedwrap{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.signedwrap .sl{font-family:var(--disp);text-transform:uppercase;font-size:10px;letter-spacing:.05em;color:var(--muted);margin-right:2px}
+.signchip{background:#e4f1e9;border:1px solid #a8d0b6;border-radius:999px;padding:2px 10px;color:#1e6b3f;font-weight:600;font-size:12.5px}
+.signchip em{font-style:normal;font-weight:400;color:#4a7a5e;font-size:10.5px;margin-left:2px}
 .cgrp{margin:7px 2px 1px;padding:4px 9px;border-radius:7px;font-family:var(--disp);font-weight:700;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:#fff;background:#3d6400;display:flex;justify-content:space-between;align-items:center}
 .when.bigstart{background:#dceac0;color:#3a5416;border-color:#a8c078;font-size:13.5px;padding:4px 10px;font-weight:600}
 .when.verw{background:#fbe6d2;border-color:#e0b076;color:#8a521a;font-weight:600;font-size:11.5px}
@@ -643,6 +647,7 @@ function renderDash(){
      <div class="sub" style="margin-top:6px;font-weight:700;color:${hit?'var(--green)':'var(--txt)'}">${hit?'✓ target gehaald':'nog '+left+' te gaan'}</div>
      <div class="split"><span><span class="dot" style="background:${TYPEC['W&S']}"></span>W&amp;S <b>${ws}</b></span><span><span class="dot" style="background:${TYPEC['Flex']}"></span>Flex <b>${dt}</b></span>${onb?`<span><span class="dot" style="background:#B7AE9E"></span>? <b>${onb}</b></span>`:''}<span><b>${gross}</b> getekend</span>${stopM?`<span style="color:var(--red)" title="plaatsingen die deze maand zijn gestopt (los van de teller)">⚑ ${stopM} gestopt deze mnd</span>`:''}</div>
      <div class="sub" style="margin-top:6px">▶ ${startM} starten deze maand · pijplijn ${proc}</div>
+     <div class="signedwrap"><span class="sl">✍ Getekend deze maand</span>${gross?grossM.slice().sort((a,b)=>(b.geplaatstOp||'').localeCompare(a.geplaatstOp||'')).map(c=>`<span class="signchip">${esc(c.naam)} <em>${c.type==='Flex'?'flex':c.type==='W&S'?'W&amp;S':'?'} · ${c.geplaatstOp?fmtFull(c.geplaatstOp):'—'}</em></span>`).join(''):'<span style="color:var(--muted)">nog niemand</span>'}</div>
    </div>
    <div class="panelbox week"><h4>📅 Deze week (ma–zo) — maandagbespreking</h4><div class="wgrid">${wcells}</div>
      <div class="chiprow" style="margin-top:10px"><span class="chip"><b>${proc}</b> in procedure</span><span class="chip warn"><b>${stale}</b> blijft hangen</span><span class="chip alert"><b>${verv}</b> vervanging nodig</span>${notype?`<span class="chip warn"><b>${notype}</b> zonder type</span>`:''}</div>

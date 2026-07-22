@@ -47,6 +47,35 @@ select,input,button,textarea{font-family:var(--body);font-size:13px}
 .nzchip.nu{background:#fbeed8;border-color:#e0be80;color:#8a5a1a}
 .nzchip.nu em{color:#a86a1a;font-weight:700}
 .tag.nazorg{background:#eef2e0;border-color:#bcc9a0;color:#3a5416;font-weight:600}
+/* ── uitval-strook + formulier + tab ── */
+.uvstrook{flex:0 0 168px;min-width:168px}
+.uvbody{padding:10px;display:flex;flex-direction:column;gap:7px}
+.uvrow{background:#f1f4ea;border:1px solid var(--line);border-radius:8px;padding:7px 10px;font-size:12.5px;color:#4a4f3a;display:flex;justify-content:space-between;align-items:center}
+.uvrow b{font-size:14px}
+.uvrow.alert{background:#fbe2df;border-color:#e0a89f;color:#b0392b}
+.uvopen{width:100%;background:#3d6400;color:#fff;border:none}
+.uvhint{font-size:10.5px;color:var(--muted);margin:2px 2px 0;line-height:1.4}
+.uvfscrim{position:fixed;inset:0;background:rgba(20,30,35,.45);z-index:20;display:flex;align-items:center;justify-content:center;padding:16px}
+.uvform{background:var(--col);border:1px solid var(--line);border-radius:14px;width:460px;max-width:96vw;max-height:92vh;overflow-y:auto;padding:20px 22px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+.uvform h2{font-family:var(--disp);font-weight:600;text-transform:uppercase;font-size:16px;margin:0 0 2px}
+.uvsub{font-size:12.5px;color:var(--muted);margin:0 0 14px}
+.uvform label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:12px 0 5px}
+.uvform select,.uvform input[type=text],.uvform input[type=date],.uvform input:not([type]){width:100%;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;font-size:14px;color:var(--txt)}
+.uvradio{display:flex;flex-direction:column;gap:6px}
+.uvopt{display:block;background:#f4f6ee;border:1px solid var(--line);border-radius:9px;padding:9px 12px;font-size:13.5px;font-weight:600;cursor:pointer;text-transform:none;letter-spacing:0;color:var(--txt);margin:0}
+.uvopt small{display:block;font-weight:400;font-size:11.5px;color:var(--muted);margin-top:1px}
+.uvopt.sel{background:#e4f1e9;border-color:#a8d0b6}
+.uvopt input{margin-right:6px}
+.uvcheck{display:flex;gap:8px;align-items:center;text-transform:none;letter-spacing:0;font-size:13px!important;font-weight:600!important;color:var(--txt)!important;margin-top:16px!important}
+.uvfoot{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}
+.uvtabs{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 10px}
+.uvtab{background:#fff;border:1px solid var(--line);border-radius:999px;padding:6px 14px;font:inherit;font-size:12.5px;font-weight:600;color:var(--txt);cursor:pointer}
+.uvtab.aan{background:#3d6400;border-color:#3d6400;color:#fff}
+.uvmuted{font-size:11.5px;color:var(--muted)}
+.uvauto{font-size:9.5px;background:#eef1e6;border:1px solid var(--line);border-radius:999px;padding:1px 6px;color:var(--muted);vertical-align:middle}
+.uvrecbtn{border:1px solid var(--line);background:#fff;border-radius:6px;font-size:11px;font-weight:600;padding:2px 8px;cursor:pointer;color:var(--muted)}
+.uvrecbtn.aan{background:#e4f1e9;border-color:#a8d0b6;color:#1e6b3f}
+.uvedit{border:1px solid var(--line);background:#fff;border-radius:6px;font-size:11px;padding:2px 7px;cursor:pointer}
 .cgrp{margin:7px 2px 1px;padding:4px 9px;border-radius:7px;font-family:var(--disp);font-weight:700;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:#fff;background:#3d6400;display:flex;justify-content:space-between;align-items:center}
 .when.bigstart{background:#dceac0;color:#3a5416;border-color:#a8c078;font-size:13.5px;padding:4px 10px;font-weight:600}
 .when.verw{background:#fbe6d2;border-color:#e0b076;color:#8a521a;font-weight:600;font-size:11.5px}
@@ -222,6 +251,7 @@ select,.vtype{background:#ffffff;color:var(--txt);border:1px solid var(--line);b
     <button class="btn" id="add">+ Kandidaat</button>
     <button class="btn ghost" id="manage">⚙ Klanten</button>
     <button class="btn ghost" id="cijfersbtn">📊 Cijfers</button>
+    <button class="btn ghost" id="uitvalbtn">🗂 Uitval</button>
     <button class="btn ghost" id="exportbtn">↓ Export</button>
     <button class="btn ghost" id="importbtn" style="display:none">↑ Import</button>
     <button class="btn ghost" id="adminbtn" style="display:none">👤 Gebruikers</button>
@@ -426,6 +456,7 @@ function rowToCand(r) {
     geplaatstOp: r.geplaatst_op||'', gestoptOp: r.gestopt_op||'',
     garantieMnd: r.garantie_mnd||0, maandloon: r.maandloon||null, toeslagPct: r.toeslag_pct||null, reden: r.reden||'',
     volgendeActie: r.volgende_actie||'', actieDatum: r.actie_datum||'', noShows: r.no_shows||0, notities: Array.isArray(r.notities)?r.notities:[], historie: Array.isArray(r.historie)?r.historie:[],
+    afvalType: r.afval_type||'', afvalCat: r.afval_categorie||'', stopDoor: r.stop_door||'', stopCat: r.stop_categorie||'', recyclebaar: r.recyclebaar==null?null:!!r.recyclebaar,
     ooId: r.oo_id||null, vervangt: r.vervangt||'',
     rec: r.rec||'', note: r.note||'',
     _updatedBy: r.updated_by, _updatedAt: r.updated_at
@@ -439,6 +470,7 @@ function candToRow(c) {
     geplaatst_op: c.geplaatstOp||'', gestopt_op: c.gestoptOp||'',
     garantie_mnd: c.garantieMnd||0, maandloon: c.maandloon||null, toeslag_pct: c.toeslagPct||null, reden: c.reden||'',
     volgende_actie: c.volgendeActie||null, actie_datum: c.actieDatum||null, no_shows: c.noShows||0, notities: c.notities||[], historie: c.historie||[],
+    afval_type: c.afvalType||'', afval_categorie: c.afvalCat||'', stop_door: c.stopDoor||'', stop_categorie: c.stopCat||'', recyclebaar: c.recyclebaar==null?null:!!c.recyclebaar,
     oo_id: c.ooId||null, vervangt: c.vervangt||'',
     rec: c.rec||'', note: c.note||''
   };
@@ -584,6 +616,33 @@ const STALE=10;
 const PHASES=[{k:'Voorselectie',c:'#9aa3b2'},{k:'Voorgesteld',c:'#5b8bbf'},{k:'O&O sessie',c:'#9575b8'},{k:'Eerste gesprek',c:'#5a9bd4'},{k:'Tweede gesprek',c:'#4178b0'},{k:'Meeloopdag',c:'#d9a441'},{k:'In de wacht',c:'#4a9d9d'},{k:'Offer',c:'#d97941'},{k:'Contract ondertekenen',c:'#6a9e3f'},{k:'Contract getekend',c:'#3d9968'},{k:'Gestart',c:'#3d9968'},{k:'Afgevallen',c:'#8a8f7a'},{k:'Gestopt',c:'#c0392b'}];
 const PLACED=['Contract getekend','Gestart'];
 const DONE=['Contract getekend','Gestart','Afgevallen','Gestopt'];
+// ── uitval-structuur: twee soorten afvallers + gestructureerd stoppen ──
+const AFVAL_CATS={
+  niet_gekwalificeerd:['Taal','Ervaring/skills','Motivatie','No-show','Fysiek/gezondheid','Klant wees af','Meeloopdag niet goed','Anders'],
+  offer_afgewezen:['Salaris te laag','Ander aanbod geaccepteerd','Reistijd/afstand','Rooster/ploegen','Blijft bij huidige werkgever','Niets meer gehoord','Anders'],
+};
+const STOP_CATS={
+  kandidaat:['Ander werk gevonden','Werk beviel niet','Fysiek te zwaar','Reistijd/vervoer','Privéomstandigheden','Verdwenen/no-show','Anders'],
+  klant:['Functioneren onvoldoende','Te weinig werk/krimp','Einde project/seizoen','Conflict/houding','Anders'],
+  anders:['Anders'],
+};
+const AFVAL_LBL={niet_gekwalificeerd:'❌ Niet gekwalificeerd',offer_afgewezen:'💔 Offer afgewezen'};
+const STOP_LBL={kandidaat:'Kandidaat zelf',klant:'Klant beëindigde',anders:'Anders'};
+// verst bereikte FUNNEL-fase (Afgevallen/Gestopt tellen niet mee als 'ver gekomen')
+function furthestPhaseIdx(c){
+  const eind=PHASES.findIndex(p=>p.k==='Afgevallen');
+  const idx=f=>{const i=PHASES.findIndex(p=>p.k===f);return i>=eind?-1:i};
+  let m=idx(c.fase);
+  (c.historie||[]).forEach(h=>{const i=idx(h&&h.fase);if(i>m)m=i});
+  if(c.geplaatstOp){const g=idx('Contract getekend');if(g>m)m=g}
+  return m;
+}
+// automatische type-suggestie: kwam de kandidaat ooit tot Offer/In de wacht/Contract ondertekenen?
+function afvalTypeVan(c){
+  if(c.afvalType)return c.afvalType;
+  const offerIdx=PHASES.findIndex(p=>p.k==='In de wacht');
+  return furthestPhaseIdx(c)>=offerIdx?'offer_afgewezen':'niet_gekwalificeerd';
+}
 const EXPECTSTART=['Meeloopdag','Offer','Contract ondertekenen'];
 const WEEKFASES=['O&O sessie','Eerste gesprek','Tweede gesprek','Meeloopdag','Offer'];
 const BRONNEN=['','Indeed','LinkedIn','Meta','Referral','Eigen werving','Anders'];
@@ -668,11 +727,12 @@ function renderDash(){
      ${stopM?`<div class="signedwrap" style="border-top:none;padding-top:0"><span class="sl">🛑 Gestopt deze maand</span>${stopL.slice().sort((a,b)=>(b.gestoptOp||'').localeCompare(a.gestoptOp||'')).map(c=>`<span class="signchip stopchip">${esc(c.naam)} <em>${c.gestoptOp?fmtFull(c.gestoptOp):'—'}</em></span>`).join('')}</div>`:''}
    </div>
    <div class="panelbox week"><h4>📅 Deze week (ma–zo) — maandagbespreking</h4><div class="wgrid">${wcells}</div>
-     <div class="chiprow" style="margin-top:10px"><span class="chip"><b>${proc}</b> in procedure</span><span class="chip warn"><b>${stale}</b> blijft hangen</span><span class="chip alert"><b>${verv}</b> vervanging nodig</span>${notype?`<span class="chip warn"><b>${notype}</b> zonder type</span>`:''}${vroeg<3?`<span class="chip alert" title="minder dan 3 kandidaten in Voorgesteld/O&O/Eerste gesprek — over ~6 weken droogte">⚠ instroom laag (${vroeg})</span>`:''}</div>
+     <div class="chiprow" style="margin-top:10px"><span class="chip"><b>${proc}</b> in procedure</span><span class="chip warn"><b>${stale}</b> blijft hangen</span><span class="chip alert" id="vervchip" style="cursor:pointer" title="open de uitval-lijst"><b>${verv}</b> vervanging nodig</span>${notype?`<span class="chip warn"><b>${notype}</b> zonder type</span>`:''}${vroeg<3?`<span class="chip alert" title="minder dan 3 kandidaten in Voorgesteld/O&O/Eerste gesprek — over ~6 weken droogte">⚠ instroom laag (${vroeg})</span>`:''}</div>
      ${nazorg.length?`<div class="nazorgrow"><span class="sl">🤝 Nazorg (dag 3·14·30)</span>${nazorg.map(x=>`<span class="nzchip${x.nu?' nu':''}" title="${x.nu?'vandaag check-in!':'volgende check-in dag '+(x.cp||30)}">${esc(x.c.naam)} <em>dag ${x.d}${x.nu?' · BEL NU':x.cp?' → '+x.cp:''}</em></span>`).join('')}</div>`:''}
    </div>
    <div class="panelbox kan"><h4>📥 Kanaal (in procedure)</h4>${kanrows}</div>`;
   $('#tgtinp').onchange=e=>{const v=+e.target.value||0;state.targets[m]=v;_upsertTarget(m,v);render()};
+  const _vc=document.getElementById('vervchip');if(_vc)_vc.onclick=()=>openUitval('stop');
   $('#tgtprev').onclick=()=>{selMonth=addMonth(selMonth,-1);renderDash()};
   $('#tgtnext').onclick=()=>{selMonth=addMonth(selMonth,1);renderDash()};
 }
@@ -686,6 +746,7 @@ function render(){
   const gbc=!!state.groupByClient;
   const board=$('#board');board.innerHTML='';
   PHASES.forEach(ph=>{
+    if(ph.k==='Afgevallen'||ph.k==='Gestopt')return;   // uitval leeft in het eigen tabblad (🗂)
     const list=state.cands.filter(c=>c.fase===ph.k&&match(c)).sort(byDate);
     if(ph.k==='Contract getekend')list.sort((a,b)=>{const x=a.start||'9999',y=b.start||'9999';return x<y?-1:x>y?1:a.naam.localeCompare(b.naam)});
     if(ph.k==='Gestopt')list.sort((a,b)=>{const x=a.gestoptOp||'',y=b.gestoptOp||'';if(!x&&!y)return a.naam.localeCompare(b.naam);if(!x)return 1;if(!y)return-1;return x<y?1:x>y?-1:a.naam.localeCompare(b.naam)});
@@ -718,6 +779,7 @@ function render(){
     board.appendChild(col);
   });
   board.appendChild(kaderEl(match));
+  board.appendChild(uitvalStrook());
   document.querySelectorAll('.vbtn').forEach(b=>b.onclick=e=>{e.stopPropagation();const s=state.cands.find(x=>x.id===e.target.dataset.rep);openEdit(null,{klant:s.klant,functie:s.functie,type:s.type,vervangt:s.id})});
   document.querySelectorAll('.rbtn').forEach(b=>b.onclick=e=>{e.stopPropagation();openReactivate(e.target.dataset.react)});
   document.querySelectorAll('.krow').forEach(r=>r.onclick=()=>openEdit(r.dataset.id));
@@ -749,6 +811,158 @@ function kaderEl(match){
   col.addEventListener('dragleave',()=>col.classList.remove('drop'));
   col.addEventListener('drop',e=>{e.preventDefault();col.classList.remove('drop');move(e.dataTransfer.getData('id'),'Contract getekend')});
   return col;
+}
+
+// ─── UITVAL: strook + formulier + tabblad ───────────────────────
+function uitvalStrook(){
+  const afg=state.cands.filter(c=>c.fase==='Afgevallen').length;
+  const stp=state.cands.filter(c=>c.fase==='Gestopt').length;
+  const verv=state.cands.filter(stopOpen).length;
+  const col=document.createElement('div');col.className='colm uvstrook';col.style.setProperty('--ph','#8a8f7a');
+  col.innerHTML=`<div class="chead"><h3>🗂 Uitval</h3><span class="count">${afg+stp}</span></div>
+    <div class="uvbody">
+      <div class="uvrow">❌ Afgevallen <b>${afg}</b></div>
+      <div class="uvrow">🛑 Gestopt <b>${stp}</b></div>
+      ${verv?`<div class="uvrow alert">↻ vervanging nodig <b>${verv}</b></div>`:''}
+      <button class="btn small uvopen" id="uvopen">Openen →</button>
+      <p class="uvhint">sleep een kaart hierheen om af te melden</p>
+    </div>`;
+  col.querySelector('#uvopen').onclick=()=>openUitval();
+  col.addEventListener('dragover',e=>{e.preventDefault();col.classList.add('drop')});
+  col.addEventListener('dragleave',()=>col.classList.remove('drop'));
+  col.addEventListener('drop',e=>{e.preventDefault();col.classList.remove('drop');const id=e.dataTransfer.getData('id');const c=state.cands.find(x=>x.id===id);if(!c)return;openUitvalForm(id,PLACED.includes(c.fase)?'Gestopt':'Afgevallen')});
+  return col;
+}
+
+function openUitvalForm(id,doel){
+  const c=state.cands.find(x=>x.id===id);if(!c)return;
+  const edit=c.fase===doel;                               // al uitgevallen → gegevens bijwerken
+  document.querySelectorAll('.uvfscrim').forEach(e=>e.remove());
+  const sug=doel==='Afgevallen'?afvalTypeVan(c):null;
+  const curType=c.afvalType||sug||'niet_gekwalificeerd';
+  const curDoor=c.stopDoor||'kandidaat';
+  const opts=(arr,sel)=>arr.map(x=>`<option ${x===sel?'selected':''}>${x}</option>`).join('');
+  const wrap=document.createElement('div');wrap.className='uvfscrim';
+  wrap.innerHTML=`<div class="uvform">
+    <h2>${doel==='Afgevallen'?'❌ Kandidaat afmelden':'🛑 Kandidaat gestopt'} · ${esc(c.naam)}</h2>
+    <p class="uvsub">${esc(c.klant)} · ${esc(c.functie)}${doel==='Afgevallen'&&sug?` · verst gekomen: <b>${esc(PHASES[furthestPhaseIdx(c)]?.k||c.fase)}</b>`:''}</p>
+    ${doel==='Afgevallen'?`
+      <label>Soort afvaller</label>
+      <div class="uvradio">
+        <label class="uvopt ${curType==='niet_gekwalificeerd'?'sel':''}"><input type="radio" name="uv_type" value="niet_gekwalificeerd" ${curType==='niet_gekwalificeerd'?'checked':''}> ❌ Niet gekwalificeerd<small>viel af in O&O / gesprekken / meeloopdag</small></label>
+        <label class="uvopt ${curType==='offer_afgewezen'?'sel':''}"><input type="radio" name="uv_type" value="offer_afgewezen" ${curType==='offer_afgewezen'?'checked':''}> 💔 Offer afgewezen<small>was gekwalificeerd, accepteerde het aanbod niet</small></label>
+      </div>
+      <label>Reden</label><select id="uv_cat">${opts(AFVAL_CATS[curType],c.afvalCat)}</select>`
+    :`
+      <label>Gestopt door</label>
+      <div class="uvradio">
+        <label class="uvopt ${curDoor==='kandidaat'?'sel':''}"><input type="radio" name="uv_door" value="kandidaat" ${curDoor==='kandidaat'?'checked':''}> Kandidaat zelf<small>zegde zelf op / vertrok</small></label>
+        <label class="uvopt ${curDoor==='klant'?'sel':''}"><input type="radio" name="uv_door" value="klant" ${curDoor==='klant'?'checked':''}> Klant<small>beëindigde het contract</small></label>
+        <label class="uvopt ${curDoor==='anders'?'sel':''}"><input type="radio" name="uv_door" value="anders" ${curDoor==='anders'?'checked':''}> Anders<small></small></label>
+      </div>
+      <label>Reden</label><select id="uv_cat">${opts(STOP_CATS[curDoor],c.stopCat)}</select>
+      <label>Gestopt op</label><input type="date" id="uv_datum" value="${esc(c.gestoptOp||todayISO())}">`}
+    <label>Toelichting (optioneel)</label><input id="uv_txt" value="${esc(c.reden||'')}" placeholder="korte toelichting…">
+    <label class="uvcheck"><input type="checkbox" id="uv_rec" ${(c.recyclebaar==null?(doel==='Afgevallen'&&curType==='offer_afgewezen'):c.recyclebaar)?'checked':''}> ♻ Recyclebaar — later heraanbieden (andere klant/functie)</label>
+    <div class="uvfoot"><button class="btn" id="uv_annuleer">Annuleren</button>
+    <button class="btn primary" id="uv_save">${edit?'Bijwerken':doel==='Afgevallen'?'Afmelden':'Stop vastleggen'}</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  wrap.addEventListener('mousedown',e=>{if(e.target===wrap)wrap.remove()});
+  const syncCats=()=>{
+    const cat=wrap.querySelector('#uv_cat');
+    if(doel==='Afgevallen'){const t=wrap.querySelector('input[name=uv_type]:checked').value;cat.innerHTML=opts(AFVAL_CATS[t],null);wrap.querySelector('#uv_rec').checked=c.recyclebaar==null?t==='offer_afgewezen':c.recyclebaar;}
+    else{const d=wrap.querySelector('input[name=uv_door]:checked').value;cat.innerHTML=opts(STOP_CATS[d],null);}
+    wrap.querySelectorAll('.uvopt').forEach(o=>o.classList.toggle('sel',o.querySelector('input').checked));
+  };
+  wrap.querySelectorAll('.uvradio input').forEach(r=>r.onchange=syncCats);
+  wrap.querySelector('#uv_annuleer').onclick=()=>wrap.remove();
+  wrap.querySelector('#uv_save').onclick=()=>{
+    const data={cat:wrap.querySelector('#uv_cat').value,txt:wrap.querySelector('#uv_txt').value.trim(),rec:wrap.querySelector('#uv_rec').checked};
+    if(doel==='Afgevallen')data.type=wrap.querySelector('input[name=uv_type]:checked').value;
+    else{data.door=wrap.querySelector('input[name=uv_door]:checked').value;data.datum=wrap.querySelector('#uv_datum').value||todayISO();}
+    wrap.remove();applyUitval(c,doel,data,edit);
+  };
+}
+
+function applyUitval(c,doel,d,edit){
+  if(!edit){
+    if(!Array.isArray(c.historie))c.historie=[];c.historie.push({fase:doel,op:todayISO()});
+    c.fase=doel;c.since=todayISO();
+    if(doel==='Afgevallen')c.geplaatstOp='';               // geen spookplaatsing
+    if(doel!=='O&O sessie')c.ooId=null;
+  }
+  if(doel==='Afgevallen'){c.afvalType=d.type;c.afvalCat=d.cat;c.stopDoor='';c.stopCat='';}
+  else{c.stopDoor=d.door;c.stopCat=d.cat;c.gestoptOp=d.datum||c.gestoptOp||todayISO();}
+  c.reden=d.txt;c.recyclebaar=d.rec;
+  _upsertCand(c);render();
+  toast(`${c.naam} → ${doel==='Afgevallen'?AFVAL_LBL[c.afvalType]:'🛑 gestopt ('+STOP_LBL[c.stopDoor]+')'}`);
+  const uv=document.getElementById('uitvalscrim');if(uv&&uv.classList.contains('open'))openUitval(window._uvFilter);
+}
+
+// ── het Uitval-tabblad ──
+function openUitval(filter){
+  window._uvFilter=filter=filter||window._uvFilter||'alles';
+  document.querySelectorAll('#uitvalscrim').forEach(e=>e.remove());
+  const afg=state.cands.filter(c=>c.fase==='Afgevallen');
+  const stp=state.cands.filter(c=>c.fase==='Gestopt');
+  const nk=afg.filter(c=>afvalTypeVan(c)==='niet_gekwalificeerd');
+  const oa=afg.filter(c=>afvalTypeVan(c)==='offer_afgewezen');
+  // offer-acceptatie: iedereen die ooit In de wacht/Offer/Contract ondertekenen of verder kwam
+  const offerIdx=PHASES.findIndex(p=>p.k==='In de wacht');
+  const offers=state.cands.filter(c=>(furthestPhaseIdx(c)>=offerIdx||c.afvalType==='offer_afgewezen')&&!c.vervangt);
+  const geaccepteerd=offers.filter(c=>c.geplaatstOp||PLACED.includes(c.fase)).length;
+  const accPct=offers.length?Math.round(geaccepteerd/offers.length*100):null;
+  const topRedenen=(arr,veldFn)=>{const per={};arr.forEach(c=>{const r=veldFn(c)||'—';per[r]=(per[r]||0)+1});return Object.entries(per).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([r,n])=>`${esc(r)} (${n})`).join(' · ')||'—'};
+  // stop-duur na start
+  const stopDuur=b=>stp.filter(c=>{const ref=c.start||c.geplaatstOp;if(!ref||!c.gestoptOp)return b==='?';const dgn=Math.round((new Date(c.gestoptOp)-new Date(ref))/864e5);return b==='30'?dgn<=30:b==='90'?dgn>30&&dgn<=90:b==='+'?dgn>90:false}).length;
+  const lijst = filter==='nk'?nk : filter==='oa'?oa : filter==='stop'?stp : [...afg,...stp];
+  lijst.sort((a,b)=>((b.gestoptOp||b.since||''))<((a.gestoptOp||a.since||''))?-1:1);
+  const tabs=[['alles',`Alles (${afg.length+stp.length})`],['nk',`❌ Niet gekwalificeerd (${nk.length})`],['oa',`💔 Offer afgewezen (${oa.length})`],['stop',`🛑 Gestopt (${stp.length})`]];
+  const rij=c=>{
+    const isStop=c.fase==='Gestopt';
+    const t=isStop?`🛑 ${STOP_LBL[c.stopDoor]||'—'}${c.stopCat?' · '+esc(c.stopCat):''}`:`${AFVAL_LBL[afvalTypeVan(c)]}${c.afvalCat?' · '+esc(c.afvalCat):''}${c.afvalType?'':' <span class="uvauto" title="automatisch bepaald uit de fase-historie">auto</span>'}`;
+    const rep=isStop?repOf(c):null;
+    const verv=isStop?(rep?(PLACED.includes(rep.fase)?`<span class="tag" style="background:#e4f1e9;border-color:#a8d0b6;color:#1e6b3f">✓ vervangen door ${esc(rep.naam)}</span>`:`<span class="tag" style="background:#faedd6;border-color:#e6c896;color:#8a5a1a">vervanger: ${esc(rep.naam)} · ${esc(rep.fase)}</span>`):owesReplacement(c)?`<span class="tag" style="background:#fbe2df;border-color:#e0a89f;color:#b0392b">vervanging nodig</span> <button class="vbtn" data-rep="${c.id}">+ Vervanger</button>`:`<span class="tag reden">buiten garantie</span>`):'';
+    return `<tr>
+      <td><b>${esc(c.naam)}</b><br><span class="uvmuted">${esc(c.klant)} · ${esc(c.functie)}</span></td>
+      <td>${t}${c.reden?`<br><span class="uvmuted">"${esc(c.reden)}"</span>`:''}</td>
+      <td>${esc(PHASES[furthestPhaseIdx(c)]?.k||'—')}</td>
+      <td class="rr">${fmtFull(c.gestoptOp||c.since)||'—'}</td>
+      <td>${verv}</td>
+      <td class="rr" style="white-space:nowrap">
+        <button class="uvrecbtn ${c.recyclebaar?'aan':''}" data-uvrec="${c.id}" title="recyclebaar aan/uit">♻${c.recyclebaar?' ja':''}</button>
+        ${c.recyclebaar?`<button class="rbtn" data-react="${c.id}">↺ Heraanbieden</button>`:''}
+        <button class="uvedit" data-uvedit="${c.id}" title="gegevens bijwerken">✎</button>
+      </td></tr>`;
+  };
+  const el=document.createElement('div');el.className='scrim open';el.id='uitvalscrim';el.style.zIndex=9;
+  el.innerHTML=`<div class="cmodal">
+    <div class="chead2"><h2>🗂 Uitval &amp; recycle</h2><button class="btn ghost small" id="uvsluit">✕ Sluiten</button></div>
+    <div class="cbody">
+      <div class="cgridtop">
+        <div class="cstat"><div class="cn">${afg.length+stp.length}</div><div class="cl">totaal uitval</div></div>
+        <div class="cstat warn"><div class="cn">${nk.length}</div><div class="cl">niet gekwalificeerd</div></div>
+        <div class="cstat bad"><div class="cn">${oa.length}</div><div class="cl">offers afgewezen</div></div>
+        <div class="cstat ${accPct!=null&&accPct>=75?'good':accPct!=null&&accPct<60?'bad':'warn'}"><div class="cn">${accPct==null?'—':accPct+'%'}</div><div class="cl">offer-acceptatie (${geaccepteerd}/${offers.length})</div></div>
+        <div class="cstat"><div class="cn">${stopDuur('30')}</div><div class="cl">stops ≤30 dgn na start</div></div>
+      </div>
+      <div class="cnote" style="margin-top:6px">Top-redenen — niet gekwalificeerd: <b>${topRedenen(nk,c=>c.afvalCat)}</b> · offer afgewezen: <b>${topRedenen(oa,c=>c.afvalCat)}</b> · gestopt: <b>${topRedenen(stp,c=>c.stopCat)}</b>. Stops na start: ≤30d <b>${stopDuur('30')}</b> · 31-90d <b>${stopDuur('90')}</b> · >90d <b>${stopDuur('+')}</b>.</div>
+      <div class="uvtabs">${tabs.map(([k,l])=>`<button class="uvtab ${filter===k?'aan':''}" data-uvtab="${k}">${l}</button>`).join('')}</div>
+      <div class="ctable"><table>
+        <tr><th>Kandidaat</th><th>Uitval</th><th>Verst gekomen</th><th class="rr">Datum</th><th>Vervanging</th><th class="rr">Acties</th></tr>
+        ${lijst.map(rij).join('')||'<tr><td colspan="6" style="color:var(--muted);padding:14px">Niets in deze categorie.</td></tr>'}
+      </table></div>
+      <p class="cnote">♻ = recyclebaar: goede kandidaten voor heraanbieden bij een andere klant of functie. 💔 Offer-afwijzers zijn volledig gekwalificeerd — je beste pool. Klik ✎ om soort/reden bij te werken (ook voor oude kandidaten zonder categorie).</p>
+    </div></div>`;
+  document.body.appendChild(el);
+  el.querySelector('#uvsluit').onclick=()=>el.remove();
+  el.addEventListener('mousedown',e=>{if(e.target===el)el.remove()});
+  el.querySelectorAll('[data-uvtab]').forEach(b=>b.onclick=()=>openUitval(b.dataset.uvtab));
+  el.querySelectorAll('[data-uvedit]').forEach(b=>b.onclick=()=>{const c=state.cands.find(x=>x.id===b.dataset.uvedit);openUitvalForm(c.id,c.fase)});
+  el.querySelectorAll('[data-uvrec]').forEach(b=>b.onclick=()=>{const c=state.cands.find(x=>x.id===b.dataset.uvrec);c.recyclebaar=!c.recyclebaar;_upsertCand(c);openUitval(filter)});
+  el.querySelectorAll('[data-react]').forEach(b=>b.onclick=()=>{el.remove();openReactivate(b.dataset.react)});
+  el.querySelectorAll('[data-rep]').forEach(b=>b.onclick=()=>{const s=state.cands.find(x=>x.id===b.dataset.rep);el.remove();openEdit(null,{klant:s.klant,functie:s.functie,type:s.type,vervangt:s.id})});
 }
 
 function renderWeekGrouped(body,list,dateFn,asc){
@@ -793,6 +1007,7 @@ function cardEl(c){
 
 function move(id,fase){
   const c=state.cands.find(x=>x.id===id);if(!c||c.fase===fase)return;
+  if(fase==='Afgevallen'||fase==='Gestopt'){openUitvalForm(id,fase);return}
   if(!Array.isArray(c.historie))c.historie=[];c.historie.push({fase,op:todayISO()});c.fase=fase;c.since=todayISO();
   if(PLACED.includes(fase)){if(!c.geplaatstOp)c.geplaatstOp=todayISO();}
   else if(fase!=='Gestopt')c.geplaatstOp='';   // teruggezet vóór 'Contract getekend' → plaatsingsdatum wissen (geen spookplaatsing)
@@ -871,6 +1086,8 @@ $('#f_save').onclick=()=>{
     state.cands.push(savedCand);
   }
   _upsertCand(savedCand);render();$('#scrim').classList.remove('open');editing=null;toast('Opgeslagen');
+  // via het paneel op Afgevallen/Gestopt gezet zonder categorie → uitval-formulier erachteraan
+  if(['Afgevallen','Gestopt'].includes(efase)&&!(efase==='Afgevallen'?savedCand.afvalCat:savedCand.stopCat))openUitvalForm(savedCand.id,efase);
 };
 $('#f_del').onclick=()=>{if(editing&&confirm('Kandidaat verwijderen?')){_deleteCandDB(editing);state.cands=state.cands.filter(x=>x.id!==editing);render();$('#scrim').classList.remove('open');editing=null;toast('Verwijderd')}};
 $('#f_noshow').onclick=()=>{if(!editing)return;const c=state.cands.find(x=>x.id===editing);if(!c)return;if(!confirm(c.naam+' als no-show markeren? De afspraak wordt gewist en geteld.'))return;c.noShows=(c.noShows||0)+1;if(!Array.isArray(c.notities))c.notities=[];c.notities.push({t:todayISO(),tekst:'No-show'+(c.datum?' (afspraak '+c.datum+')':''),door:(currentUser&&currentUser.email||'').split('@')[0]});c.datum='';c.tijd='';_upsertCand(c);$('#scrim').classList.remove('open');render();toast(c.naam+' → no-show geregistreerd')};$('#f_cancel').onclick=()=>{$('#scrim').classList.remove('open');editing=null};
@@ -1090,5 +1307,6 @@ function openCijfers(){
 }
 
 document.getElementById('cijfersbtn')&&(document.getElementById('cijfersbtn').onclick=openCijfers);
+document.getElementById('uitvalbtn')&&(document.getElementById('uitvalbtn').onclick=()=>openUitval());
 let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),1900)}
 </script>

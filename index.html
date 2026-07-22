@@ -76,6 +76,18 @@ select,input,button,textarea{font-family:var(--body);font-size:13px}
 .uvrecbtn{border:1px solid var(--line);background:#fff;border-radius:6px;font-size:11px;font-weight:600;padding:2px 8px;cursor:pointer;color:var(--muted)}
 .uvrecbtn.aan{background:#e4f1e9;border-color:#a8d0b6;color:#1e6b3f}
 .uvedit{border:1px solid var(--line);background:#fff;border-radius:6px;font-size:11px;padding:2px 7px;cursor:pointer}
+/* ── intakeformulier ── */
+.informulier{width:640px}
+.inblok{font-family:var(--disp);font-weight:600;text-transform:uppercase;letter-spacing:.05em;font-size:12.5px;color:#3d6400;border-top:2px solid var(--line);padding-top:12px;margin:18px 0 2px}
+.uvform textarea{width:100%;background:#fff;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit;font-size:13.5px;color:var(--txt);resize:vertical;min-height:40px}
+.inchips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+.inchip{border:1px solid var(--line);background:#f4f6ee;border-radius:999px;padding:5px 14px;font:inherit;font-size:12.5px;font-weight:600;color:var(--txt);cursor:pointer}
+.inchip.aan{background:#3d6400;border-color:#3d6400;color:#fff}
+.inschaal{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:4px}
+.incijfer{width:34px;height:34px;border:1px solid var(--line);background:#f4f6ee;border-radius:8px;font:inherit;font-size:13.5px;font-weight:600;color:var(--txt);cursor:pointer}
+.incijfer.aan{background:#c8f135;border-color:#a8c078;color:#171d08}
+.tag.intake{background:#e4f1e9;border-color:#a8d0b6;color:#1e6b3f;font-weight:600}
+.tag.intake.risico{background:#fbeed8;border-color:#e0be80;color:#8a5a1a}
 .cgrp{margin:7px 2px 1px;padding:4px 9px;border-radius:7px;font-family:var(--disp);font-weight:700;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:#fff;background:#3d6400;display:flex;justify-content:space-between;align-items:center}
 .when.bigstart{background:#dceac0;color:#3a5416;border-color:#a8c078;font-size:13.5px;padding:4px 10px;font-weight:600}
 .when.verw{background:#fbe6d2;border-color:#e0b076;color:#8a521a;font-weight:600;font-size:11.5px}
@@ -250,6 +262,7 @@ select,.vtype{background:#ffffff;color:var(--txt);border:1px solid var(--line);b
     <button class="btn oo" id="planoo">+ O&amp;O sessie</button>
     <button class="btn" id="add">+ Kandidaat</button>
     <button class="btn ghost" id="manage">⚙ Klanten</button>
+    <button class="btn ghost" id="kandbtn">👥 Kandidaten</button>
     <button class="btn ghost" id="cijfersbtn">📊 Cijfers</button>
     <button class="btn ghost" id="uitvalbtn">🗂 Uitval</button>
     <button class="btn ghost" id="exportbtn">↓ Export</button>
@@ -289,6 +302,7 @@ select,.vtype{background:#ffffff;color:var(--txt);border:1px solid var(--line);b
   </div>
   <div class="pfoot">
     <button class="btn ghost" id="f_del" style="display:none;color:var(--red);border-color:#4a2a26">Verwijderen</button>
+    <button class="btn ghost" id="f_intakebtn">📋 Intake</button>
     <button class="btn ghost" id="f_noshow" style="color:var(--amber);border-color:#4a3524">⊘ No-show</button>
      <button class="btn ghost" id="f_cancel">Annuleren</button>
     <button class="btn" id="f_save">Opslaan</button>
@@ -457,6 +471,7 @@ function rowToCand(r) {
     garantieMnd: r.garantie_mnd||0, maandloon: r.maandloon||null, toeslagPct: r.toeslag_pct||null, reden: r.reden||'',
     volgendeActie: r.volgende_actie||'', actieDatum: r.actie_datum||'', noShows: r.no_shows||0, notities: Array.isArray(r.notities)?r.notities:[], historie: Array.isArray(r.historie)?r.historie:[],
     afvalType: r.afval_type||'', afvalCat: r.afval_categorie||'', stopDoor: r.stop_door||'', stopCat: r.stop_categorie||'', recyclebaar: r.recyclebaar==null?null:!!r.recyclebaar,
+    intake: (r.intake&&typeof r.intake==='object')?r.intake:null,
     ooId: r.oo_id||null, vervangt: r.vervangt||'',
     rec: r.rec||'', note: r.note||'',
     _updatedBy: r.updated_by, _updatedAt: r.updated_at
@@ -471,6 +486,7 @@ function candToRow(c) {
     garantie_mnd: c.garantieMnd||0, maandloon: c.maandloon||null, toeslag_pct: c.toeslagPct||null, reden: c.reden||'',
     volgende_actie: c.volgendeActie||null, actie_datum: c.actieDatum||null, no_shows: c.noShows||0, notities: c.notities||[], historie: c.historie||[],
     afval_type: c.afvalType||'', afval_categorie: c.afvalCat||'', stop_door: c.stopDoor||'', stop_categorie: c.stopCat||'', recyclebaar: c.recyclebaar==null?null:!!c.recyclebaar,
+    intake: c.intake||null,
     oo_id: c.ooId||null, vervangt: c.vervangt||'',
     rec: c.rec||'', note: c.note||''
   };
@@ -747,6 +763,7 @@ function render(){
   const board=$('#board');board.innerHTML='';
   PHASES.forEach(ph=>{
     if(ph.k==='Afgevallen'||ph.k==='Gestopt')return;   // uitval leeft in het eigen tabblad (🗂)
+    if(ph.k==='Voorselectie')return;                   // kandidatenbank leeft in het eigen tabblad (👥) — pijplijn start bij Voorgesteld
     const list=state.cands.filter(c=>c.fase===ph.k&&match(c)).sort(byDate);
     if(ph.k==='Contract getekend')list.sort((a,b)=>{const x=a.start||'9999',y=b.start||'9999';return x<y?-1:x>y?1:a.naam.localeCompare(b.naam)});
     if(ph.k==='Gestopt')list.sort((a,b)=>{const x=a.gestoptOp||'',y=b.gestoptOp||'';if(!x&&!y)return a.naam.localeCompare(b.naam);if(!x)return 1;if(!y)return-1;return x<y?1:x>y?-1:a.naam.localeCompare(b.naam)});
@@ -780,6 +797,7 @@ function render(){
   });
   board.appendChild(kaderEl(match));
   board.appendChild(uitvalStrook());
+  {const kb=document.getElementById('kandbtn');if(kb){const n=state.cands.filter(c=>c.fase==='Voorselectie').length;const z=state.cands.filter(c=>c.fase==='Voorselectie'&&!intakeDone(c)).length;kb.innerHTML=`👥 Kandidaten (${n})${z?` <span style="background:#fbeed8;color:#8a5a1a;border-radius:999px;padding:0 6px;font-size:11px">${z}</span>`:''}`;}}
   document.querySelectorAll('.vbtn').forEach(b=>b.onclick=e=>{e.stopPropagation();const s=state.cands.find(x=>x.id===e.target.dataset.rep);openEdit(null,{klant:s.klant,functie:s.functie,type:s.type,vervangt:s.id})});
   document.querySelectorAll('.rbtn').forEach(b=>b.onclick=e=>{e.stopPropagation();openReactivate(e.target.dataset.react)});
   document.querySelectorAll('.krow').forEach(r=>r.onclick=()=>openEdit(r.dataset.id));
@@ -965,6 +983,144 @@ function openUitval(filter){
   el.querySelectorAll('[data-rep]').forEach(b=>b.onclick=()=>{const s=state.cands.find(x=>x.id===b.dataset.rep);el.remove();openEdit(null,{klant:s.klant,functie:s.functie,type:s.type,vervangt:s.id})});
 }
 
+// ─── KANDIDATEN (voorportaal): videocall-lijst + diepe intake ───
+function intakeDone(c){return !!(c.intake&&(c.intake.cijfer||(c.intake.drijfveer||'').trim()||(c.intake.jaZegt||'').trim()))}
+
+function openKandidaten(){
+  document.querySelectorAll('#kandscrim').forEach(e=>e.remove());
+  const lijst=state.cands.filter(c=>c.fase==='Voorselectie')
+    .sort((a,b)=>{const x=a.datum||'9999',y=b.datum||'9999';return x<y?-1:x>y?1:a.naam.localeCompare(b.naam)});
+  const zonder=lijst.filter(c=>!intakeDone(c)).length;
+  const geenCall=lijst.filter(c=>!c.datum).length;
+  const rij=c=>{
+    const d=c.datum?daysTo(c.datum):null;
+    const call=!c.datum?'<span class="tag" style="background:#fbe2df;border-color:#e0a89f;color:#b0392b">geen call gepland</span>'
+      :d===0?`<span class="when vandaag" style="margin:0">📅 VANDAAG${c.tijd?' · '+c.tijd:''}</span>`
+      :d===1?`<span class="when morgen" style="margin:0">📅 MORGEN${c.tijd?' · '+c.tijd:''}</span>`
+      :d<0?`<span class="tag" style="background:#fbe2df;border-color:#e0a89f;color:#b0392b">⚠ call was ${fmtFull(c.datum)}</span>`
+      :`<span class="tag" style="background:#eef2e0;border-color:#bcc9a0;color:#26331a">📅 ${fmtFull(c.datum)}${c.tijd?' · '+c.tijd:''}</span>`;
+    const it=c.intake||{};
+    const status=intakeDone(c)
+      ?`<span class="tag" style="background:${+it.cijfer<7?'#fbeed8':'#e4f1e9'};border-color:${+it.cijfer<7?'#e0be80':'#a8d0b6'};color:${+it.cijfer<7?'#8a5a1a':'#1e6b3f'}">📋 intake ✓${it.cijfer?' · '+it.cijfer+'/10':''}</span>`
+      :'<span class="tag" style="background:#f1f4ea;border-color:#d7ddc8;color:#697256">intake nog te doen</span>';
+    return `<tr>
+      <td><b>${esc(c.naam)}</b><br><span class="uvmuted">${esc(c.klant||'—')} · ${esc(c.functie||'—')}${c.bron?' · '+esc(c.bron):''}</span></td>
+      <td>${call}${c.noShows>0?` <span class="tag noshow">⊘ ${c.noShows}×</span>`:''}</td>
+      <td>${status}${intakeDone(c)&&(it.drijfveer||'').trim()?`<br><span class="uvmuted">“${esc(it.drijfveer)}”</span>`:''}</td>
+      <td class="rr" style="white-space:nowrap">
+        <button class="btn small primary" data-kint="${c.id}">📋 Intake</button>
+        <button class="btn small" data-kvoor="${c.id}" style="background:#3d6400;color:#fff;border-color:#3d6400">→ Voorstellen</button>
+        <button class="uvedit" data-kedit="${c.id}" title="kaart bewerken">✎</button>
+        <button class="uvedit" data-kaf="${c.id}" title="afmelden">🗂</button>
+      </td></tr>`;
+  };
+  const el=document.createElement('div');el.className='scrim open';el.id='kandscrim';el.style.zIndex=9;
+  el.innerHTML=`<div class="cmodal">
+    <div class="chead2"><h2>👥 Kandidaten — intake vóór de pijplijn</h2>
+      <div class="row" style="gap:8px"><button class="btn small primary" id="kandnieuw">+ Kandidaat</button><button class="btn ghost small" id="kandsluit">✕ Sluiten</button></div></div>
+    <div class="cbody">
+      <div class="cgridtop">
+        <div class="cstat"><div class="cn">${lijst.length}</div><div class="cl">kandidaten klaar voor videocall</div></div>
+        <div class="cstat ${zonder?'warn':'good'}"><div class="cn">${zonder}</div><div class="cl">intake nog te doen</div></div>
+        <div class="cstat ${geenCall?'bad':'good'}"><div class="cn">${geenCall}</div><div class="cl">zonder geplande call</div></div>
+      </div>
+      <p class="cnote">Werkwijze: kandidaat uit Manatal goedgekeurd? Plan de videocall en zet hem hier neer (+ Kandidaat, mét call-datum). Doe tijdens de call de 📋 intake. Goed gesprek? <b>→ Voorstellen</b> zet hem de pijplijn in (die begint bij Voorgesteld).</p>
+      <div class="ctable"><table>
+        <tr><th>Kandidaat</th><th>Videocall</th><th>Intake</th><th class="rr">Acties</th></tr>
+        ${lijst.map(rij).join('')||'<tr><td colspan="4" style="color:var(--muted);padding:14px">Nog geen kandidaten — voeg toe met + Kandidaat zodra er een videocall gepland is.</td></tr>'}
+      </table></div>
+    </div></div>`;
+  document.body.appendChild(el);
+  el.querySelector('#kandsluit').onclick=()=>el.remove();
+  el.addEventListener('mousedown',e=>{if(e.target===el)el.remove()});
+  el.querySelector('#kandnieuw').onclick=()=>{el.remove();openEdit(null,{fase:'Voorselectie'})};
+  el.querySelectorAll('[data-kint]').forEach(b=>b.onclick=()=>openIntakeForm(b.dataset.kint));
+  el.querySelectorAll('[data-kedit]').forEach(b=>b.onclick=()=>{el.remove();openEdit(b.dataset.kedit)});
+  el.querySelectorAll('[data-kaf]').forEach(b=>b.onclick=()=>openUitvalForm(b.dataset.kaf,'Afgevallen'));
+  el.querySelectorAll('[data-kvoor]').forEach(b=>b.onclick=()=>{
+    const c=state.cands.find(x=>x.id===b.dataset.kvoor);
+    if(!intakeDone(c)&&!confirm(`${c.naam} heeft nog geen intake gehad — toch voorstellen?`))return;
+    el.remove();move(c.id,'Voorgesteld');
+  });
+}
+
+// ── het intakeformulier (diepe intake tijdens de videocall) ──
+function openIntakeForm(id){
+  const c=state.cands.find(x=>x.id===id);if(!c)return;
+  document.querySelectorAll('.uvfscrim').forEach(e=>e.remove());
+  const it=c.intake||{};
+  const v=k=>esc(it[k]||'');
+  const ta=(k,vraag,ph)=>`<label>${vraag}</label><textarea id="in_${k}" rows="2" placeholder="${ph||''}">${v(k)}</textarea>`;
+  const chips=(k,ops,sel)=>`<div class="inchips" data-veld="${k}">${ops.map(o=>`<button type="button" class="inchip ${sel===o?'aan':''}" data-w="${o}">${o}</button>`).join('')}</div>`;
+  const wrap=document.createElement('div');wrap.className='uvfscrim';
+  wrap.innerHTML=`<div class="uvform informulier">
+    <h2>📋 Intake · ${esc(c.naam)}</h2>
+    <p class="uvsub">${esc(c.klant||'—')} · ${esc(c.functie||'—')}${c.datum?' · videocall '+fmtFull(c.datum)+(c.tijd?' '+c.tijd:''):''}${it.op?' · laatst bijgewerkt '+fmtFull(it.op)+(it.door?' door '+esc(it.door):''):''}</p>
+
+    <h3 class="inblok">A · Situatie &amp; urgentie</h3>
+    ${ta('situatie','Wat is er veranderd waardoor je nu openstaat? Wat mis je in je huidige/vorige werk?','de reden achter de reden — vraag door!')}
+    <label>Loop je ook bij andere bureaus of bedrijven?</label>
+    ${chips('trajecten',['nee','ja'],it.trajecten)}
+    <textarea id="in_trajectenTxt" rows="1" placeholder="zo ja: waar, en hoe ver in het proces?" style="${it.trajecten==='ja'?'':'display:none'}">${v('trajectenTxt')}</textarea>
+
+    <h3 class="inblok">B · Drijfveren</h3>
+    ${ta('jaZegt','Stel je krijgt een aanbod: wat maakt dat je ja zegt — behalve het geld?')}
+    ${ta('droombaan','Wat maakt een baan voor jou een droombaan?')}
+    ${ta('blijven','Wat zou je huidige werkgever moeten veranderen zodat je tóch blijft?','ontmaskert de échte drijfveer + tegenbod-gevoeligheid')}
+
+    <h3 class="inblok">C · Werkbeeld</h3>
+    ${ta('werkbeeld','Wat weet je van dit soort werk — tempo, fysiek, omgeving? Waar verwacht je aan te moeten wennen?','voorkomt uitval in de eerste 30 dagen')}
+
+    <h3 class="inblok">D · Toekomst &amp; ontwikkeling</h3>
+    ${ta('jaar13','Waar wil je over 1 jaar staan? En over 3 jaar?')}
+    ${ta('leren','Wat wil je leren of ontwikkelen in je volgende stap?')}
+
+    <h3 class="inblok">E · Risico-check</h3>
+    ${ta('blokkade','Is er iets of iemand die je zou tegenhouden om ja te zeggen op een passend aanbod?','partner, reistijd, twijfel…')}
+    <label>Verwacht je een tegenbod als je opzegt?</label>
+    ${chips('tegenbod',['nee','misschien','ja'],it.tegenbod)}
+    <label>Heb je je onvrede al eens bij je leidinggevende aangekaart?</label>
+    ${chips('aangekaart',['ja','nee'],it.aangekaart)}
+
+    <h3 class="inblok">F · Commitment</h3>
+    <label>Als het aanbod klopt: hoe graag maak je deze overstap? (1–10)</label>
+    <div class="inschaal">${[1,2,3,4,5,6,7,8,9,10].map(n=>`<button type="button" class="incijfer ${+it.cijfer===n?'aan':''}" data-c="${n}">${n}</button>`).join('')}</div>
+    ${ta('nietLager','Waarom geen twee punten lager?','hier komt het echte verhaal')}
+    ${ta('tien','Wat zou het een 10 maken?','= je onderhandel-checklist bij het offer')}
+
+    <h3 class="inblok">✍ Samenvatting AM</h3>
+    ${ta('drijfveer','Echte drijfveer (één zin)')}
+    ${ta('risicos','Afhaakrisico’s')}
+    <label>Klaar om voor te stellen?</label>
+    ${chips('klaar',['ja','nog niet'],it.klaar)}
+
+    <div class="uvfoot"><button class="btn" id="in_annuleer">Sluiten</button>
+    <button class="btn primary" id="in_save">Intake opslaan</button></div>
+  </div>`;
+  document.body.appendChild(wrap);
+  wrap.addEventListener('mousedown',e=>{if(e.target===wrap)wrap.remove()});
+  wrap.querySelectorAll('.inchips').forEach(g=>g.querySelectorAll('.inchip').forEach(b=>b.onclick=()=>{
+    g.querySelectorAll('.inchip').forEach(x=>x.classList.remove('aan'));b.classList.add('aan');
+    if(g.dataset.veld==='trajecten')wrap.querySelector('#in_trajectenTxt').style.display=b.dataset.w==='ja'?'':'none';
+  }));
+  wrap.querySelectorAll('.incijfer').forEach(b=>b.onclick=()=>{wrap.querySelectorAll('.incijfer').forEach(x=>x.classList.remove('aan'));b.classList.add('aan')});
+  wrap.querySelector('#in_annuleer').onclick=()=>wrap.remove();
+  wrap.querySelector('#in_save').onclick=()=>{
+    const chip=k=>{const b=wrap.querySelector(`.inchips[data-veld=${k}] .inchip.aan`);return b?b.dataset.w:''};
+    const cij=wrap.querySelector('.incijfer.aan');
+    const g=k=>wrap.querySelector('#in_'+k).value.trim();
+    c.intake={situatie:g('situatie'),trajecten:chip('trajecten'),trajectenTxt:g('trajectenTxt'),
+      jaZegt:g('jaZegt'),droombaan:g('droombaan'),blijven:g('blijven'),werkbeeld:g('werkbeeld'),
+      jaar13:g('jaar13'),leren:g('leren'),blokkade:g('blokkade'),tegenbod:chip('tegenbod'),aangekaart:chip('aangekaart'),
+      cijfer:cij?+cij.dataset.c:null,nietLager:g('nietLager'),tien:g('tien'),
+      drijfveer:g('drijfveer'),risicos:g('risicos'),klaar:chip('klaar'),
+      op:todayISO(),door:(currentProfile&&currentProfile.naam)||(currentUser&&currentUser.email||'').split('@')[0]};
+    _upsertCand(c);wrap.remove();render();
+    toast(`Intake opgeslagen ✓${c.intake.cijfer?' — '+c.intake.cijfer+'/10':''}`);
+    const kt=document.getElementById('kandscrim');if(kt)openKandidaten();
+  };
+}
+
 function renderWeekGrouped(body,list,dateFn,asc){
   const withD=list.filter(c=>dateFn(c)).slice().sort((a,b)=>{const x=dateFn(a),y=dateFn(b);if(x===y)return a.naam.localeCompare(b.naam);return asc?(x<y?-1:1):(x<y?1:-1)});
   const noD=list.filter(c=>!dateFn(c));
@@ -990,6 +1146,7 @@ function cardEl(c){
   if(c.vervangt&&state.cands.some(x=>x.id===c.vervangt))h+=`<span class="tag rep">↻ vervanger</span>`;
   if(PLACED.includes(c.fase)&&c.garantieMnd>0){const ge=garantieEnd(c);if(ge&&ge>=todayISO())h+=`<span class="tag gar">🛡 garantie t/m ${fmtFull(ge)}</span>`}
   if(c.fase==='Gestart'&&c.start&&!c.gestoptOp){const _nd=daysAgo(c.start);if(_nd>=0&&_nd<=32){const _cp=[3,14,30].find(x=>x>=_nd);if([3,14,30].includes(_nd))h+=`<span class="tag noshow">🤝 check-in VANDAAG (dag ${_nd})</span>`;else if(_cp)h+=`<span class="tag nazorg">🤝 dag ${_nd} · check-in dag ${_cp}</span>`}}
+  if(intakeDone(c)){const _ic=c.intake.cijfer;h+=`<span class="tag intake ${_ic&&_ic<7?'risico':''}" title="${_ic&&_ic<7?'afhaakrisico — cijfer '+_ic+'/10':'intake gedaan'}">📋${_ic?' '+_ic:' ✓'}</span>`}
   h+=`</div>`;
   if(dd){const lbl=placed?((c.fase==='Gestart'&&dd<=todayISO())?'▶ gestart':'▶ start'):'📅';const tt=(!placed&&c.tijd)?(' · '+c.tijd):'';let cls,lbl2;if(isVandaag){cls='when vandaag';lbl2='📅 VANDAAG';}else if(isMorgen){cls='when morgen';lbl2='📅 MORGEN';}else{cls='when'+(placed?' start':(soon?' soon':''))+(c.fase==='Contract getekend'?' bigstart':'');lbl2=lbl;}h+=`<div class="${cls}">${lbl2} ${fmtFull(dd)}${tt}</div>`}
   if(EXPECTSTART.includes(c.fase)&&c.start)h+=`<div class="when verw">🎯 verw. start ${fmtFull(c.start)}</div>`;
@@ -1048,7 +1205,7 @@ function openEdit(id,prefill){
   $('#f_bron').innerHTML=BRONNEN.map(b=>`<option value="${b}">${b||'—'}</option>`).join('');
   $('#f_verv').innerHTML='<option value="">—</option>'+state.cands.filter(x=>x.fase==='Gestopt'&&x.id!==id).map(x=>`<option value="${x.id}">${esc(x.naam)} (${esc(x.klant)})</option>`).join('');
   $('#f_naam').value=c?c.naam:'';$('#f_fase').value=c?c.fase:'Voorselectie';$('#f_bron').value=c?c.bron:'';
-  $('#f_datum').value=c?c.datum:'';$('#f_tijd').value=c?(c.tijd||''):'';$('#f_start').value=c?c.start:'';$('#f_plaats').value=c?(c.geplaatstOp||''):'';$('#f_stop').value=c?(c.gestoptOp||''):'';$('#f_garantie').value=c?String(c.garantieMnd||0):'0';$('#f_loon').value=c?(c.maandloon||''):'';$('#f_toeslag').value=c?(c.toeslagPct||''):'';$('#f_rec').value=c?c.rec:'';$('#f_note').value='';$('#f_actie').value=c?(c.volgendeActie||''):'';$('#f_actiedatum').value=c?(c.actieDatum||''):'';{const _nh=$('#f_notehist');const _list=(c&&Array.isArray(c.notities))?c.notities.slice():[];if(c&&c.note&&!_list.some(n=>n.tekst===c.note))_list.unshift({t:c.since||'',tekst:c.note,legacy:true});_nh.innerHTML=_list.slice().reverse().map(n=>`<div class="noteitem"><span class="nt">${n.t?fmtFull(n.t):'eerder'}${n.door?' · '+esc(n.door):''}</span>${esc(n.tekst)}</div>`).join('');}$('#f_verv').value=c?(c.vervangt||''):(prefill.vervangt||'');$('#f_reden').value=c?(c.reden||''):'';
+  $('#f_datum').value=c?c.datum:'';$('#f_tijd').value=c?(c.tijd||''):'';$('#f_start').value=c?c.start:'';$('#f_plaats').value=c?(c.geplaatstOp||''):'';$('#f_stop').value=c?(c.gestoptOp||''):'';$('#f_garantie').value=c?String(c.garantieMnd||0):'0';$('#f_loon').value=c?(c.maandloon||''):'';$('#f_toeslag').value=c?(c.toeslagPct||''):'';$('#f_rec').value=c?c.rec:'';$('#f_note').value='';$('#f_actie').value=c?(c.volgendeActie||''):'';$('#f_actiedatum').value=c?(c.actieDatum||''):'';{const _nh=$('#f_notehist');const _list=(c&&Array.isArray(c.notities))?c.notities.slice():[];if(c&&c.note&&!_list.some(n=>n.tekst===c.note))_list.unshift({t:c.since||'',tekst:c.note,legacy:true});_nh.innerHTML=_list.slice().reverse().map(n=>`<div class="noteitem"><span class="nt">${n.t?fmtFull(n.t):'eerder'}${n.door?' · '+esc(n.door):''}</span>${esc(n.tekst)}</div>`).join('');}$('#f_verv').value=c?(c.vervangt||''):(prefill.vervangt||'');$('#f_reden').value=c?(c.reden||''):'';{const ib=$('#f_intakebtn');if(ib)ib.textContent=(c&&intakeDone(c))?('📋 Intake ✓'+(c.intake.cijfer?' · '+c.intake.cijfer+'/10':'')):'📋 Intake';}
   // "Laatst gewijzigd door" info
   const updEl = $('#f_updinfo');
   if(c&&c._updatedAt) {
@@ -1074,6 +1231,8 @@ $('#f_save').onclick=()=>{
   const pv=$('#f_plaats').value,sv=$('#f_stop').value;
   const data={naam,klant,functie,type,fase:nf,datum:$('#f_datum').value,tijd:$('#f_tijd').value,start:$('#f_start').value,bron:$('#f_bron').value,garantieMnd:+$('#f_garantie').value||0,maandloon:$('#f_loon').value?+$('#f_loon').value:null,toeslagPct:$('#f_toeslag').value?+$('#f_toeslag').value:null,reden:$('#f_reden').value,rec:$('#f_rec').value,vervangt:$('#f_verv').value,volgendeActie:$('#f_actie').value.trim(),actieDatum:$('#f_actiedatum').value||null,noShows:(cur&&cur.noShows)||0,historie:(cur&&Array.isArray(cur.historie))?cur.historie:[],notities:(function(){const arr=(cur&&Array.isArray(cur.notities))?cur.notities.slice():[];const nn=$('#f_note').value.trim();if(nn)arr.push({t:todayISO(),tekst:nn,door:(currentUser&&currentUser.email||'').split('@')[0]});return arr})(),note:''};
   let efase=nf;if(PLACED.includes(nf)&&data.start){efase=data.start<=todayISO()?'Gestart':'Contract getekend';data.fase=efase}
+  // poortwachter kandidatenbank: nieuw of verplaatst naar Voorselectie vergt een geplande videocall
+  if(efase==='Voorselectie'&&!data.datum&&!(editing&&cur&&cur.fase==='Voorselectie'))return toast('Plan eerst de videocall: vul de datum in — alleen geselecteerde kandidaten mét call komen in de lijst');
   let savedCand;
   if(editing){
     if(cur.fase!==efase)cur.since=todayISO();
@@ -1090,6 +1249,7 @@ $('#f_save').onclick=()=>{
   if(['Afgevallen','Gestopt'].includes(efase)&&!(efase==='Afgevallen'?savedCand.afvalCat:savedCand.stopCat))openUitvalForm(savedCand.id,efase);
 };
 $('#f_del').onclick=()=>{if(editing&&confirm('Kandidaat verwijderen?')){_deleteCandDB(editing);state.cands=state.cands.filter(x=>x.id!==editing);render();$('#scrim').classList.remove('open');editing=null;toast('Verwijderd')}};
+$('#f_intakebtn').onclick=()=>{if(!editing)return toast('Sla de kandidaat eerst op, open daarna de intake');$('#scrim').classList.remove('open');openIntakeForm(editing)};
 $('#f_noshow').onclick=()=>{if(!editing)return;const c=state.cands.find(x=>x.id===editing);if(!c)return;if(!confirm(c.naam+' als no-show markeren? De afspraak wordt gewist en geteld.'))return;c.noShows=(c.noShows||0)+1;if(!Array.isArray(c.notities))c.notities=[];c.notities.push({t:todayISO(),tekst:'No-show'+(c.datum?' (afspraak '+c.datum+')':''),door:(currentUser&&currentUser.email||'').split('@')[0]});c.datum='';c.tijd='';_upsertCand(c);$('#scrim').classList.remove('open');render();toast(c.naam+' → no-show geregistreerd')};$('#f_cancel').onclick=()=>{$('#scrim').classList.remove('open');editing=null};
 $('#scrim').onclick=e=>{if(e.target===$('#scrim')){$('#scrim').classList.remove('open');editing=null}};
 $('#add').onclick=()=>openEdit(null);
@@ -1308,5 +1468,6 @@ function openCijfers(){
 
 document.getElementById('cijfersbtn')&&(document.getElementById('cijfersbtn').onclick=openCijfers);
 document.getElementById('uitvalbtn')&&(document.getElementById('uitvalbtn').onclick=()=>openUitval());
+document.getElementById('kandbtn')&&(document.getElementById('kandbtn').onclick=()=>openKandidaten());
 let tt;function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),1900)}
 </script>

@@ -88,6 +88,9 @@ select,input,button,textarea{font-family:var(--body);font-size:13px}
 .incijfer.aan{background:#c8f135;border-color:#a8c078;color:#171d08}
 .tag.intake{background:#e4f1e9;border-color:#a8d0b6;color:#1e6b3f;font-weight:600}
 .tag.intake.risico{background:#fbeed8;border-color:#e0be80;color:#8a5a1a}
+.totsal{grid-column:1/-1;background:#eef2e0;border:1px solid #bcc9a0;border-radius:8px;padding:7px 11px;font-size:13px;color:#26331a;min-height:18px}
+.totsal:empty{display:none}
+.totsal .ts-sub{font-size:11px;color:#697256}
 .cgrp{margin:7px 2px 1px;padding:4px 9px;border-radius:7px;font-family:var(--disp);font-weight:700;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:#fff;background:#3d6400;display:flex;justify-content:space-between;align-items:center}
 .when.bigstart{background:#dceac0;color:#3a5416;border-color:#a8c078;font-size:13.5px;padding:4px 10px;font-weight:600}
 .when.verw{background:#fbe6d2;border-color:#e0b076;color:#8a521a;font-weight:600;font-size:11.5px}
@@ -294,6 +297,10 @@ select,.vtype{background:#ffffff;color:var(--txt);border:1px solid var(--line);b
     <label class="fl">Garantie (maanden)<select id="f_garantie"><option value="0">Geen</option><option value="1">1 maand</option><option value="2">2 maanden</option><option value="3">3 maanden</option></select></label>
     <label class="fl">Bruto maandloon (indicatie)<input id="f_loon" type="number" min="0" step="50" placeholder="bijv. 3000"></label>
     <label class="fl">Ploegentoeslag %<input id="f_toeslag" type="number" min="0" max="100" step="1" placeholder="0"></label>
+    <label class="fl">Vakantietoeslag %<input id="f_vt" type="number" min="0" max="20" step="0.1" placeholder="8"></label>
+    <label class="fl">Eindejaarsuitkering %<input id="f_eju" type="number" min="0" max="20" step="0.1" placeholder="0"></label>
+    <label class="fl">Overige toeslagen %<input id="f_overig" type="number" min="0" max="50" step="0.5" placeholder="0"></label>
+    <div id="f_totsal" class="totsal"></div>
     <label class="fl">Recruiter<input id="f_rec" placeholder="Naam recruiter"></label>
     <label class="fl">Vervangt (koppel aan gestopte)<select id="f_verv"></select></label>
     <label class="fl">Reden afwijzing/stop<input id="f_reden" placeholder="Optioneel"></label>
@@ -472,6 +479,7 @@ function rowToCand(r) {
     volgendeActie: r.volgende_actie||'', actieDatum: r.actie_datum||'', noShows: r.no_shows||0, notities: Array.isArray(r.notities)?r.notities:[], historie: Array.isArray(r.historie)?r.historie:[],
     afvalType: r.afval_type||'', afvalCat: r.afval_categorie||'', stopDoor: r.stop_door||'', stopCat: r.stop_categorie||'', recyclebaar: r.recyclebaar==null?null:!!r.recyclebaar,
     intake: (r.intake&&typeof r.intake==='object')?r.intake:null,
+    vtPct: r.vt_pct==null?null:Number(r.vt_pct), ejuPct: r.eju_pct==null?null:Number(r.eju_pct), overigPct: r.overig_pct==null?null:Number(r.overig_pct), herstartVan: r.herstart_van||'',
     ooId: r.oo_id||null, vervangt: r.vervangt||'',
     rec: r.rec||'', note: r.note||'',
     _updatedBy: r.updated_by, _updatedAt: r.updated_at
@@ -487,6 +495,7 @@ function candToRow(c) {
     volgende_actie: c.volgendeActie||null, actie_datum: c.actieDatum||null, no_shows: c.noShows||0, notities: c.notities||[], historie: c.historie||[],
     afval_type: c.afvalType||'', afval_categorie: c.afvalCat||'', stop_door: c.stopDoor||'', stop_categorie: c.stopCat||'', recyclebaar: c.recyclebaar==null?null:!!c.recyclebaar,
     intake: c.intake||null,
+    vt_pct: c.vtPct==null?null:c.vtPct, eju_pct: c.ejuPct==null?null:c.ejuPct, overig_pct: c.overigPct==null?null:c.overigPct, herstart_van: c.herstartVan||'',
     oo_id: c.ooId||null, vervangt: c.vervangt||'',
     rec: c.rec||'', note: c.note||''
   };
@@ -653,6 +662,15 @@ function furthestPhaseIdx(c){
   if(c.geplaatstOp){const g=idx('Contract getekend');if(g>m)m=g}
   return m;
 }
+// totaal jaarsalaris uit componenten. VT default 8% (zat voorheen impliciet in de jaarfactor 12,96).
+// VT rekent over loon incl. ploegentoeslag; EJU en overig over het kale jaarloon.
+function totaalJaarSalaris(loon,ploeg,vt,eju,overig){
+  if(!loon)return null;
+  const jr=loon*12;
+  return jr*(1+(ploeg||0)/100)*(1+((vt==null||vt==='')?8:+vt)/100)+jr*((eju||0)/100)+jr*((overig||0)/100);
+}
+const eurB=n=>'€ '+Math.round(n).toLocaleString('nl-NL');
+
 // automatische type-suggestie: kwam de kandidaat ooit tot Offer/In de wacht/Contract ondertekenen?
 function afvalTypeVan(c){
   if(c.afvalType)return c.afvalType;
@@ -939,7 +957,9 @@ function openUitval(filter){
   const tabs=[['alles',`Alles (${afg.length+stp.length})`],['nk',`❌ Niet gekwalificeerd (${nk.length})`],['oa',`💔 Offer afgewezen (${oa.length})`],['stop',`🛑 Gestopt (${stp.length})`]];
   const rij=c=>{
     const isStop=c.fase==='Gestopt';
-    const t=isStop?`🛑 ${STOP_LBL[c.stopDoor]||'—'}${c.stopCat?' · '+esc(c.stopCat):''}`:`${AFVAL_LBL[afvalTypeVan(c)]}${c.afvalCat?' · '+esc(c.afvalCat):''}${c.afvalType?'':' <span class="uvauto" title="automatisch bepaald uit de fase-historie">auto</span>'}`;
+    const herstart=state.cands.find(x=>x.herstartVan===c.id);
+    const t=(isStop?`🛑 ${STOP_LBL[c.stopDoor]||'—'}${c.stopCat?' · '+esc(c.stopCat):''}`:`${AFVAL_LBL[afvalTypeVan(c)]}${c.afvalCat?' · '+esc(c.afvalCat):''}${c.afvalType?'':' <span class="uvauto" title="automatisch bepaald uit de fase-historie">auto</span>'}`)
+      +(herstart?` <span class="tag" style="background:#e4f1e9;border-color:#a8d0b6;color:#1e6b3f" title="nieuw traject loopt op een nieuwe kaart — deze uitkomst blijft meetellen">♻ heraangeboden bij ${esc(herstart.klant)}</span>`:'');
     const rep=isStop?repOf(c):null;
     const verv=isStop?(rep?(PLACED.includes(rep.fase)?`<span class="tag" style="background:#e4f1e9;border-color:#a8d0b6;color:#1e6b3f">✓ vervangen door ${esc(rep.naam)}</span>`:`<span class="tag" style="background:#faedd6;border-color:#e6c896;color:#8a5a1a">vervanger: ${esc(rep.naam)} · ${esc(rep.fase)}</span>`):owesReplacement(c)?`<span class="tag" style="background:#fbe2df;border-color:#e0a89f;color:#b0392b">vervanging nodig</span> <button class="vbtn" data-rep="${c.id}">+ Vervanger</button>`:`<span class="tag reden">buiten garantie</span>`):'';
     return `<tr>
@@ -950,7 +970,7 @@ function openUitval(filter){
       <td>${verv}</td>
       <td class="rr" style="white-space:nowrap">
         <button class="uvrecbtn ${c.recyclebaar?'aan':''}" data-uvrec="${c.id}" title="recyclebaar aan/uit">♻${c.recyclebaar?' ja':''}</button>
-        ${c.recyclebaar?`<button class="rbtn" data-react="${c.id}">↺ Heraanbieden</button>`:''}
+        ${c.recyclebaar&&!herstart?`<button class="rbtn" data-react="${c.id}">↺ Heraanbieden</button>`:''}
         <button class="uvedit" data-uvedit="${c.id}" title="gegevens bijwerken">✎</button>
       </td></tr>`;
   };
@@ -1140,6 +1160,7 @@ function cardEl(c){
   const placed=PLACED.includes(c.fase);const dd=placed?c.start:c.datum;const soon=dd&&daysTo(dd)>=0&&daysTo(dd)<=7;const loc=locOf(c.klant);const _td=todayISO();const isVandaag=dd&&!placed&&daysTo(dd)===0;const isMorgen=dd&&!placed&&daysTo(dd)===1;const actieOver=c.volgendeActie&&c.actieDatum&&c.actieDatum<_td;if(isVandaag)el.classList.add('today');if(actieOver)el.classList.add('flag');
   let h=`<div class="nm">${esc(c.naam)}</div><div class="sub"><b>${esc(c.klant)}</b> · ${esc(c.functie)}</div><div class="meta">${c.type?`<span class="tag type">${esc(c.type)}</span>`:(PLACED.includes(c.fase)?`<span class="tag typewarn">⚠ type?</span>`:`<span class="tag type">—</span>`)}`;
   if(c.bron)h+=`<span class="tag bron">${esc(c.bron)}</span>`;if(c.noShows>0)h+=`<span class="tag noshow">⊘ ${c.noShows}× no-show</span>`;
+  if(c.herstartVan)h+=`<span class="tag rep" title="heraangeboden — eerdere uitkomst blijft geregistreerd op de oude kaart">♻ herstart</span>`;
   if((c.fase==='Afgevallen'||c.fase==='Gestopt')&&c.reden)h+=`<span class="tag reden">${esc(c.reden)}</span>`;
   if(loc)h+=`<span class="tag loc">📍 ${esc(loc)}</span>`;
   {const _dif=daysAgo(c.since);if(!DONE.includes(c.fase)&&_dif>=4)h+=`<span class="tag ${c.fase==='In de wacht'?'bron':(isStale(c)?'stale':'age')}">⏳ ${_dif} dgn</span>`;}
@@ -1205,7 +1226,7 @@ function openEdit(id,prefill){
   $('#f_bron').innerHTML=BRONNEN.map(b=>`<option value="${b}">${b||'—'}</option>`).join('');
   $('#f_verv').innerHTML='<option value="">—</option>'+state.cands.filter(x=>x.fase==='Gestopt'&&x.id!==id).map(x=>`<option value="${x.id}">${esc(x.naam)} (${esc(x.klant)})</option>`).join('');
   $('#f_naam').value=c?c.naam:'';$('#f_fase').value=c?c.fase:'Voorselectie';$('#f_bron').value=c?c.bron:'';
-  $('#f_datum').value=c?c.datum:'';$('#f_tijd').value=c?(c.tijd||''):'';$('#f_start').value=c?c.start:'';$('#f_plaats').value=c?(c.geplaatstOp||''):'';$('#f_stop').value=c?(c.gestoptOp||''):'';$('#f_garantie').value=c?String(c.garantieMnd||0):'0';$('#f_loon').value=c?(c.maandloon||''):'';$('#f_toeslag').value=c?(c.toeslagPct||''):'';$('#f_rec').value=c?c.rec:'';$('#f_note').value='';$('#f_actie').value=c?(c.volgendeActie||''):'';$('#f_actiedatum').value=c?(c.actieDatum||''):'';{const _nh=$('#f_notehist');const _list=(c&&Array.isArray(c.notities))?c.notities.slice():[];if(c&&c.note&&!_list.some(n=>n.tekst===c.note))_list.unshift({t:c.since||'',tekst:c.note,legacy:true});_nh.innerHTML=_list.slice().reverse().map(n=>`<div class="noteitem"><span class="nt">${n.t?fmtFull(n.t):'eerder'}${n.door?' · '+esc(n.door):''}</span>${esc(n.tekst)}</div>`).join('');}$('#f_verv').value=c?(c.vervangt||''):(prefill.vervangt||'');$('#f_reden').value=c?(c.reden||''):'';{const ib=$('#f_intakebtn');if(ib)ib.textContent=(c&&intakeDone(c))?('📋 Intake ✓'+(c.intake.cijfer?' · '+c.intake.cijfer+'/10':'')):'📋 Intake';}
+  $('#f_datum').value=c?c.datum:'';$('#f_tijd').value=c?(c.tijd||''):'';$('#f_start').value=c?c.start:'';$('#f_plaats').value=c?(c.geplaatstOp||''):'';$('#f_stop').value=c?(c.gestoptOp||''):'';$('#f_garantie').value=c?String(c.garantieMnd||0):'0';$('#f_loon').value=c?(c.maandloon||''):'';$('#f_toeslag').value=c?(c.toeslagPct||''):'';$('#f_vt').value=c?(c.vtPct??''):'';$('#f_eju').value=c?(c.ejuPct??''):'';$('#f_overig').value=c?(c.overigPct??''):'';updTotsal();$('#f_rec').value=c?c.rec:'';$('#f_note').value='';$('#f_actie').value=c?(c.volgendeActie||''):'';$('#f_actiedatum').value=c?(c.actieDatum||''):'';{const _nh=$('#f_notehist');const _list=(c&&Array.isArray(c.notities))?c.notities.slice():[];if(c&&c.note&&!_list.some(n=>n.tekst===c.note))_list.unshift({t:c.since||'',tekst:c.note,legacy:true});_nh.innerHTML=_list.slice().reverse().map(n=>`<div class="noteitem"><span class="nt">${n.t?fmtFull(n.t):'eerder'}${n.door?' · '+esc(n.door):''}</span>${esc(n.tekst)}</div>`).join('');}$('#f_verv').value=c?(c.vervangt||''):(prefill.vervangt||'');$('#f_reden').value=c?(c.reden||''):'';{const ib=$('#f_intakebtn');if(ib)ib.textContent=(c&&intakeDone(c))?('📋 Intake ✓'+(c.intake.cijfer?' · '+c.intake.cijfer+'/10':'')):'📋 Intake';}
   // "Laatst gewijzigd door" info
   const updEl = $('#f_updinfo');
   if(c&&c._updatedAt) {
@@ -1229,7 +1250,7 @@ $('#f_save').onclick=()=>{
   if(vsel==='-1'&&cur){klant=cur.klant;functie=cur.functie;type=cur.type}else{const v=state.vacs[+vsel];klant=v[0];functie=v[1];type=v[2]}
   const nf=$('#f_fase').value;
   const pv=$('#f_plaats').value,sv=$('#f_stop').value;
-  const data={naam,klant,functie,type,fase:nf,datum:$('#f_datum').value,tijd:$('#f_tijd').value,start:$('#f_start').value,bron:$('#f_bron').value,garantieMnd:+$('#f_garantie').value||0,maandloon:$('#f_loon').value?+$('#f_loon').value:null,toeslagPct:$('#f_toeslag').value?+$('#f_toeslag').value:null,reden:$('#f_reden').value,rec:$('#f_rec').value,vervangt:$('#f_verv').value,volgendeActie:$('#f_actie').value.trim(),actieDatum:$('#f_actiedatum').value||null,noShows:(cur&&cur.noShows)||0,historie:(cur&&Array.isArray(cur.historie))?cur.historie:[],notities:(function(){const arr=(cur&&Array.isArray(cur.notities))?cur.notities.slice():[];const nn=$('#f_note').value.trim();if(nn)arr.push({t:todayISO(),tekst:nn,door:(currentUser&&currentUser.email||'').split('@')[0]});return arr})(),note:''};
+  const data={naam,klant,functie,type,fase:nf,datum:$('#f_datum').value,tijd:$('#f_tijd').value,start:$('#f_start').value,bron:$('#f_bron').value,garantieMnd:+$('#f_garantie').value||0,maandloon:$('#f_loon').value?+$('#f_loon').value:null,toeslagPct:$('#f_toeslag').value?+$('#f_toeslag').value:null,vtPct:$('#f_vt').value===''?null:+$('#f_vt').value,ejuPct:$('#f_eju').value===''?null:+$('#f_eju').value,overigPct:$('#f_overig').value===''?null:+$('#f_overig').value,reden:$('#f_reden').value,rec:$('#f_rec').value,vervangt:$('#f_verv').value,volgendeActie:$('#f_actie').value.trim(),actieDatum:$('#f_actiedatum').value||null,noShows:(cur&&cur.noShows)||0,historie:(cur&&Array.isArray(cur.historie))?cur.historie:[],notities:(function(){const arr=(cur&&Array.isArray(cur.notities))?cur.notities.slice():[];const nn=$('#f_note').value.trim();if(nn)arr.push({t:todayISO(),tekst:nn,door:(currentUser&&currentUser.email||'').split('@')[0]});return arr})(),note:''};
   let efase=nf;if(PLACED.includes(nf)&&data.start){efase=data.start<=todayISO()?'Gestart':'Contract getekend';data.fase=efase}
   // poortwachter kandidatenbank: nieuw of verplaatst naar Voorselectie vergt een geplande videocall
   if(efase==='Voorselectie'&&!data.datum&&!(editing&&cur&&cur.fase==='Voorselectie'))return toast('Plan eerst de videocall: vul de datum in — alleen geselecteerde kandidaten mét call komen in de lijst');
@@ -1249,6 +1270,14 @@ $('#f_save').onclick=()=>{
   if(['Afgevallen','Gestopt'].includes(efase)&&!(efase==='Afgevallen'?savedCand.afvalCat:savedCand.stopCat))openUitvalForm(savedCand.id,efase);
 };
 $('#f_del').onclick=()=>{if(editing&&confirm('Kandidaat verwijderen?')){_deleteCandDB(editing);state.cands=state.cands.filter(x=>x.id!==editing);render();$('#scrim').classList.remove('open');editing=null;toast('Verwijderd')}};
+function updTotsal(){
+  const el=$('#f_totsal');if(!el)return;
+  const loon=+$('#f_loon').value||0;
+  if(!loon){el.textContent='';return}
+  const tot=totaalJaarSalaris(loon,+$('#f_toeslag').value||0,$('#f_vt').value,+$('#f_eju').value||0,+$('#f_overig').value||0);
+  el.innerHTML=`💶 Totaal jaarsalaris ≈ <b>${eurB(tot)}</b> <span class="ts-sub">(incl. toeslagen — basis voor de fee in de finance-app)</span>`;
+}
+['f_loon','f_toeslag','f_vt','f_eju','f_overig'].forEach(id=>{const e=$('#'+id);if(e)e.oninput=updTotsal});
 $('#f_intakebtn').onclick=()=>{if(!editing)return toast('Sla de kandidaat eerst op, open daarna de intake');$('#scrim').classList.remove('open');openIntakeForm(editing)};
 $('#f_noshow').onclick=()=>{if(!editing)return;const c=state.cands.find(x=>x.id===editing);if(!c)return;if(!confirm(c.naam+' als no-show markeren? De afspraak wordt gewist en geteld.'))return;c.noShows=(c.noShows||0)+1;if(!Array.isArray(c.notities))c.notities=[];c.notities.push({t:todayISO(),tekst:'No-show'+(c.datum?' (afspraak '+c.datum+')':''),door:(currentUser&&currentUser.email||'').split('@')[0]});c.datum='';c.tijd='';_upsertCand(c);$('#scrim').classList.remove('open');render();toast(c.naam+' → no-show geregistreerd')};$('#f_cancel').onclick=()=>{$('#scrim').classList.remove('open');editing=null};
 $('#scrim').onclick=e=>{if(e.target===$('#scrim')){$('#scrim').classList.remove('open');editing=null}};
@@ -1318,7 +1347,19 @@ let reactCand=null;
 function fillRFunc(){const k=$('#r_klant').value;const fs=state.vacs.filter(v=>v[0]===k).map(v=>v[1]);$('#r_func').innerHTML=fs.length?fs.map(f=>`<option>${esc(f)}</option>`).join(''):'<option value="">(geen vacature)</option>'}
 function openReactivate(id){const c=state.cands.find(x=>x.id===id);if(!c)return;reactCand=id;$('#r_klant').innerHTML=clients().map(k=>`<option${k===c.klant?' selected':''}>${esc(k)}</option>`).join('');$('#r_who').textContent=c.naam+' — eerder: '+c.klant+' · '+c.functie+(c.reden?' ('+c.reden+')':'');fillRFunc();if(state.vacs.some(v=>v[0]===c.klant&&v[1]===c.functie))$('#r_func').value=c.functie;$('#rscrim').classList.add('open')}
 $('#r_klant').onchange=fillRFunc;
-$('#r_go').onclick=()=>{const c=state.cands.find(x=>x.id===reactCand);if(!c)return;const k=$('#r_klant').value,f=$('#r_func').value;if(!f){toast('Kies een vacature');return}const v=state.vacs.find(x=>x[0]===k&&x[1]===f);c.klant=k;c.functie=f;c.type=v?v[2]:'';c.fase='Voorselectie';c.since=todayISO();c.reden='';_upsertCand(c);render();$('#rscrim').classList.remove('open');toast(c.naam+' → Voorselectie ('+k+')')};
+$('#r_go').onclick=()=>{const c=state.cands.find(x=>x.id===reactCand);if(!c)return;const k=$('#r_klant').value,f=$('#r_func').value;if(!f){toast('Kies een vacature');return}const v=state.vacs.find(x=>x[0]===k&&x[1]===f);
+  // NIEUW traject = NIEUWE kaart. De oude blijft staan als stopper/afvaller — die uitkomst is echt
+  // gebeurd (denk aan vervallen 50%-termijnen) en moet blijven meetellen in alle cijfers.
+  const wie=(currentProfile&&currentProfile.naam)||(currentUser&&currentUser.email||'').split('@')[0];
+  const n={id:'c'+Date.now(),naam:c.naam,klant:k,functie:f,type:v?v[2]:'',fase:'Voorselectie',datum:'',tijd:'',start:'',since:todayISO(),bron:c.bron||'',geplaatstOp:'',gestoptOp:'',garantieMnd:0,maandloon:c.maandloon,toeslagPct:c.toeslagPct,vtPct:c.vtPct,ejuPct:c.ejuPct,overigPct:c.overigPct,reden:'',rec:c.rec||'',note:'',ooId:null,vervangt:'',volgendeActie:'',actieDatum:null,noShows:0,
+    notities:[{t:todayISO(),tekst:'♻ Heraangeboden vanuit '+c.klant+' ('+(c.fase==='Gestopt'?'gestopt':'afgevallen')+(c.reden?': '+c.reden:'')+')',door:wie}],
+    historie:[{fase:'Voorselectie',op:todayISO()}],intake:c.intake||null,herstartVan:c.id,afvalType:'',afvalCat:'',stopDoor:'',stopCat:'',recyclebaar:null};
+  state.cands.push(n);_upsertCand(n);
+  if(!Array.isArray(c.notities))c.notities=[];
+  c.notities.push({t:todayISO(),tekst:'♻ Heraangeboden bij '+k+' — nieuw traject op een nieuwe kaart; deze kaart blijft als '+(c.fase==='Gestopt'?'stopper':'afvaller')+' geregistreerd',door:wie});
+  _upsertCand(c);render();$('#rscrim').classList.remove('open');
+  toast(c.naam+' → nieuwe kaart in Kandidaten ('+k+'); oude blijft als '+(c.fase==='Gestopt'?'stopper':'afvaller')+' tellen');
+  openKandidaten()};
 $('#r_cancel').onclick=()=>$('#rscrim').classList.remove('open');
 $('#rscrim').onclick=e=>{if(e.target===$('#rscrim'))$('#rscrim').classList.remove('open')};
 

@@ -929,7 +929,7 @@ function applyUitval(c,doel,d,edit){
     if(doel!=='O&O sessie')c.ooId=null;
   }
   if(doel==='Afgevallen'){c.afvalType=d.type;c.afvalCat=d.cat;c.stopDoor='';c.stopCat='';}
-  else{c.stopDoor=d.door;c.stopCat=d.cat;c.gestoptOp=d.datum||c.gestoptOp||todayISO();}
+  else{c.stopDoor=d.door;c.stopCat=d.cat;c.gestoptOp=d.datum||c.gestoptOp||todayISO();c.afvalType='';c.afvalCat='';}
   c.reden=d.txt;c.recyclebaar=d.rec;
   _upsertCand(c);render();
   toast(`${c.naam} → ${doel==='Afgevallen'?AFVAL_LBL[c.afvalType]:'🛑 gestopt ('+STOP_LBL[c.stopDoor]+')'}`);
@@ -971,7 +971,8 @@ function openUitval(filter){
       <td class="rr" style="white-space:nowrap">
         <button class="uvrecbtn ${c.recyclebaar?'aan':''}" data-uvrec="${c.id}" title="recyclebaar aan/uit">♻${c.recyclebaar?' ja':''}</button>
         ${c.recyclebaar&&!herstart?`<button class="rbtn" data-react="${c.id}">↺ Heraanbieden</button>`:''}
-        <button class="uvedit" data-uvedit="${c.id}" title="gegevens bijwerken">✎</button>
+        <button class="uvedit" data-uvedit="${c.id}" title="soort/reden bijwerken">✎</button>
+        <button class="uvedit" data-uvkaart="${c.id}" title="volledige kaart openen (fase, datums)">🪪</button>
       </td></tr>`;
   };
   const el=document.createElement('div');el.className='scrim open';el.id='uitvalscrim';el.style.zIndex=9;
@@ -998,6 +999,7 @@ function openUitval(filter){
   el.addEventListener('mousedown',e=>{if(e.target===el)el.remove()});
   el.querySelectorAll('[data-uvtab]').forEach(b=>b.onclick=()=>openUitval(b.dataset.uvtab));
   el.querySelectorAll('[data-uvedit]').forEach(b=>b.onclick=()=>{const c=state.cands.find(x=>x.id===b.dataset.uvedit);openUitvalForm(c.id,c.fase)});
+  el.querySelectorAll('[data-uvkaart]').forEach(b=>b.onclick=()=>{el.remove();openEdit(b.dataset.uvkaart)});
   el.querySelectorAll('[data-uvrec]').forEach(b=>b.onclick=()=>{const c=state.cands.find(x=>x.id===b.dataset.uvrec);c.recyclebaar=!c.recyclebaar;_upsertCand(c);openUitval(filter)});
   el.querySelectorAll('[data-react]').forEach(b=>b.onclick=()=>{el.remove();openReactivate(b.dataset.react)});
   el.querySelectorAll('[data-rep]').forEach(b=>b.onclick=()=>{const s=state.cands.find(x=>x.id===b.dataset.rep);el.remove();openEdit(null,{klant:s.klant,functie:s.functie,type:s.type,vervangt:s.id})});

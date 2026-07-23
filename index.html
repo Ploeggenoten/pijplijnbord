@@ -897,7 +897,8 @@ function openUitvalForm(id,doel){
         <label class="uvopt ${curDoor==='anders'?'sel':''}"><input type="radio" name="uv_door" value="anders" ${curDoor==='anders'?'checked':''}> Anders<small></small></label>
       </div>
       <label>Reden</label><select id="uv_cat">${opts(STOP_CATS[curDoor],c.stopCat)}</select>
-      <label>Gestopt op</label><input type="date" id="uv_datum" value="${esc(c.gestoptOp||todayISO())}">`}
+      <label>Gestopt op <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(maand bepaalt bij welke maand de stop telt)</span></label><input type="date" id="uv_datum" value="${esc(c.gestoptOp||todayISO())}">
+      <label>Plaatsingsdatum <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--muted)">(toen ze tekende — nodig om als stopper te tellen)</span></label><input type="date" id="uv_plaats" value="${esc(c.geplaatstOp||c.start||'')}">`}
     <label>Toelichting (optioneel)</label><input id="uv_txt" value="${esc(c.reden||'')}" placeholder="korte toelichting…">
     <label class="uvcheck"><input type="checkbox" id="uv_rec" ${(c.recyclebaar==null?(doel==='Afgevallen'&&curType==='offer_afgewezen'):c.recyclebaar)?'checked':''}> ♻ Recyclebaar — later heraanbieden (andere klant/functie)</label>
     <div class="uvfoot"><button class="btn" id="uv_annuleer">Annuleren</button>
@@ -916,7 +917,11 @@ function openUitvalForm(id,doel){
   wrap.querySelector('#uv_save').onclick=()=>{
     const data={cat:wrap.querySelector('#uv_cat').value,txt:wrap.querySelector('#uv_txt').value.trim(),rec:wrap.querySelector('#uv_rec').checked};
     if(doel==='Afgevallen')data.type=wrap.querySelector('input[name=uv_type]:checked').value;
-    else{data.door=wrap.querySelector('input[name=uv_door]:checked').value;data.datum=wrap.querySelector('#uv_datum').value||todayISO();}
+    else{
+      data.door=wrap.querySelector('input[name=uv_door]:checked').value;data.datum=wrap.querySelector('#uv_datum').value||todayISO();
+      data.plaats=wrap.querySelector('#uv_plaats').value;
+      if(!data.plaats&&!confirm('Geen plaatsingsdatum ingevuld. Dan telt deze stop NIET mee bij "gestopt deze maand". Toch doorgaan?'))return;
+    }
     wrap.remove();applyUitval(c,doel,data,edit);
   };
 }
@@ -929,7 +934,7 @@ function applyUitval(c,doel,d,edit){
     if(doel!=='O&O sessie')c.ooId=null;
   }
   if(doel==='Afgevallen'){c.afvalType=d.type;c.afvalCat=d.cat;c.stopDoor='';c.stopCat='';}
-  else{c.stopDoor=d.door;c.stopCat=d.cat;c.gestoptOp=d.datum||c.gestoptOp||todayISO();c.afvalType='';c.afvalCat='';}
+  else{c.stopDoor=d.door;c.stopCat=d.cat;c.gestoptOp=d.datum||c.gestoptOp||todayISO();if(d.plaats)c.geplaatstOp=d.plaats;c.afvalType='';c.afvalCat='';}
   c.reden=d.txt;c.recyclebaar=d.rec;
   _upsertCand(c);render();
   toast(`${c.naam} → ${doel==='Afgevallen'?AFVAL_LBL[c.afvalType]:'🛑 gestopt ('+STOP_LBL[c.stopDoor]+')'}`);

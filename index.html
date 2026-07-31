@@ -253,6 +253,15 @@ select,.vtype{background:#ffffff;color:var(--txt);border:1px solid var(--line);b
 
 <!-- MAIN APP (verborgen tot ingelogd) -->
 <div id="app" style="display:none">
+<!-- Alleen-lezen sinds 31 jul 2026: het werk gebeurt in het CRM. -->
+<div style="background:#1e3300;color:#d6ff4b;font:600 13px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;padding:10px 18px;text-align:center">
+  Dit bord is <b>alleen-lezen</b> — het werk gebeurt nu in het CRM.
+  <a href="https://ploeggenoten.github.io/crm/" style="color:#fff">Naar het CRM &rarr;</a>
+  <span style="opacity:.75;display:block;font-weight:400;font-size:12px;margin-top:2px">
+    Je gegevens staan er allemaal nog: dit bord en het CRM lezen dezelfde database.
+    Mis je hier een kandidaat, dan kent dit bord alleen de fasenaam niet meer.
+  </span>
+</div>
 <header class="top">
   <div class="brand" style="display:flex;align-items:center;gap:9px"><img src="logo-lime.png" alt="Ploeggenoten" style="height:20px;display:block"><span>Pijplijnbord</span></div>
   <div class="spacer"></div>
@@ -537,24 +546,59 @@ async function loadFromDB() {
 // ─── SAVE FUNCTIONS ─────────────────────────────────────────────
 async function save() {} // no-op — replaced by targeted saves below
 
+/* ═══════════════════════════════════════════════════════════════
+   ALLEEN-LEZEN — 31 juli 2026
+
+   Dit bord is opgegaan in het CRM (ploeggenoten.github.io/crm). Beide
+   apps schreven naar dezelfde tabellen, en dat gaf twee problemen:
+
+   1. Dit bord schrijft bij élke actie de HELE kandidaatrij weg — klant,
+      fase, historie, plaatsingsdatum. Ook automatisch bij het openen van
+      de pagina (promoteStart). Het CRM leidt die velden inmiddels anders
+      af, dus het bord overschreef stilzwijgend werk dat elders gedaan was.
+   2. De importknop deed DELETE op de hele kandidatentabel en zette daarna
+      alleen de bordkolommen terug. Alle CRM-velden — cv's, telefoon,
+      e-mail, foto's, geboortedata — waren dan permanent weg. De
+      bevestiging waarschuwde daar niet voor.
+
+   Kijken mag, schrijven niet. De gegevens zelf zijn niet van dit bord:
+   die staan in Supabase en zijn in het CRM volledig zichtbaar. Er gaat
+   dus niets verloren door dit bestand.
+
+   Terugdraaien: haal `LEESALLEEN` weg of zet hem op false.
+   Besluit Tjeerd: "ja als de data in het crm blijft wel. Het bord is nu
+   een onderdeel van het crm."                                          */
+const LEESALLEEN = true;
+function geblokkeerd(wat){
+  console.warn('Bord staat op alleen-lezen — ' + wat + ' is niet uitgevoerd.');
+  toast('Dit bord is alleen-lezen — werk verder in het CRM');
+  return Promise.resolve();
+}
+
 async function _upsertCand(c) {
+  if(LEESALLEEN) return geblokkeerd('kandidaat opslaan');
   const row = { ...candToRow(c), updated_by: currentUser?.id, updated_at: new Date().toISOString() };
   const { error } = await sb.from('candidates').upsert(row);
   if (error) { console.error('saveCand', error); toast('Opslaan mislukt'); }
 }
 async function _deleteCandDB(id) {
+  if(LEESALLEEN) return geblokkeerd('kandidaat verwijderen');
   await sb.from('candidates').delete().eq('id', id);
 }
 async function _upsertClient(client) {
+  if(LEESALLEEN) return geblokkeerd('klant opslaan');
   await sb.from('clients').upsert({naam:client.naam, contact:client.contact||'', locatie:client.locatie||''}, {onConflict:'naam'});
 }
 async function _deleteClientDB(naam) {
+  if(LEESALLEEN) return geblokkeerd('klant verwijderen');
   await sb.from('clients').delete().eq('naam', naam);
 }
 async function _upsertVac(vac) {
+  if(LEESALLEEN) return geblokkeerd('vacature opslaan');
   await sb.from('vacatures').upsert({klant:vac[0], functie:vac[1], type:vac[2]||''}, {onConflict:'klant,functie'});
 }
 async function _deleteVacDB(klant, functie) {
+  if(LEESALLEEN) return geblokkeerd('vacature verwijderen');
   await sb.from('vacatures').delete().eq('klant', klant).eq('functie', functie);
 }
 async function _upsertSession(session) {
@@ -569,6 +613,7 @@ async function _upsertTarget(maand, aantal) {
 
 // Full save for import/reset
 async function _saveAllState() {
+  if(LEESALLEEN) return geblokkeerd('volledige import');
   if (!currentUser) return;
   try {
     // Delete all and re-insert
